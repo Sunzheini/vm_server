@@ -1,0 +1,111 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+
+{#1. Page Title------------------------------------------------------------#}
+    {% block page_title %}Page Title{% endblock %}
+{#-------------------------------------------------------------------------#}
+
+    </title>
+
+{#Styles-------------------------------------------------------------------#}
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+{#Additional css--------------------------------------------------------- #}
+    {% block extra_css %}{% endblock %}
+
+{#Additional js---------------------------------------------------------- #}
+    {% block extra_js %}{% endblock %}
+
+{#JS Functions-------------------------------------------------------------#}
+{#    <script type="text/javascript" src="{% static 'css/custom_functions.js' %}"></script>#}
+</head>
+
+<body>
+    <header class="header">
+
+{#2. Nav-------------------------------------------------------------------#}
+    {% block nav %}
+        <nav class="nav-navigation">
+            <ul class="ul-nav-list" role="list">
+                <li class="li-nav-item">
+                    <i class="fa-solid fa-house"></i>
+                    <a href="{% url 'index' %}">Home</a>
+                </li>
+                <li class="li-nav-item">
+                    <i class="fa-solid fa-bars"></i>
+                    <a href="{% url 'test' %}">Test</a>
+                </li>
+            </ul>
+        </nav>
+    {% endblock %}
+{#-------------------------------------------------------------------------#}
+
+{#3. Page Name-------------------------------------------------------------#}
+    {% block page_name %}
+        <h1 class="page-title">Base Page to be used as a template</h1>
+    {% endblock %}
+{#-------------------------------------------------------------------------#}
+
+</header>
+<main>
+<div class="total-container">
+
+    <div class="menu-container">
+        <ul class="ul-menu-list" role="list">
+            <button class="card-btn" onClick="javascript:history.go(-1);">
+                <span class="card-btn-title">
+                    <i class="fa-solid fa-angles-left"></i></span>
+                <span class="card-btn-desc">Back</span>
+            </button>
+            <button class="card-btn" onclick="location.href='{% url 'test' %}';">
+                <span class="card-btn-title">
+                    <i class="fa-solid fa-landmark-flag"></i></span>
+                <span class="card-btn-desc">Test</span>
+            </button>
+        </ul>
+    </div>
+{#-------------------------------------------------------------------------#}
+
+    <hr class="horizontal-divider">
+
+    <div class="all-sections-container">
+
+{#4. Section1--------------------------------------------------------------#}
+        {% block display_content %}
+            <section class="display-content-section">
+                <div class="all-display-content-container">
+
+                    <div class="card-display">
+                        <h2 class="card-display-title">Some Title</h2>
+                        <p class="card-display-content">
+                            Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+                            Animi architecto aspernatur consequatur dolorem eos, eveniet
+                            explicabo iste maiores, neque provident ratione repudiandae
+                            saepe sunt tempore vel voluptate voluptatibus! Ipsam, laboriosam!
+                        </p>
+                    </div>
+                </div>
+            </section>
+        {% endblock %}
+{#-------------------------------------------------------------------------#}
+    </div>
+</div>
+</main>
+
+<footer class="footer">
+    <h3 class="footer-title">&copy; 2023</h3>
+</footer>
+
+</body>
+</html>
