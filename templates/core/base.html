@@ -27,8 +27,9 @@
 {#Additional js---------------------------------------------------------- #}
     {% block extra_js %}{% endblock %}
 
-{#JS Functions-------------------------------------------------------------#}
-{#    <script type="text/javascript" src="{% static 'css/custom_functions.js' %}"></script>#}
+{#JS Scripts--------------------------------------------------------------#}
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
 </head>
 
 <body>
@@ -101,6 +102,22 @@
 {#-------------------------------------------------------------------------#}
     </div>
 </div>
+
+{# REACT #}
+<div id="root"></div>
+
+<script>
+    const rootElement = document.getElementById('root');    // DOM element
+    const root = ReactDOM.createRoot(rootElement);          // React element
+
+    {# create the elements here #}
+    const headingElement = React.createElement('h3', {}, 'Hello World');
+    const divElement = React.createElement('div', {}, headingElement); // contains headingElement
+
+    {# render the elements here #}
+    root.render(divElement);    // render the parent element
+</script>
+
 </main>
 
 <footer class="footer">

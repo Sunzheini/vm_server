@@ -23,6 +23,39 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 
+# CORS ----------------------------------------------------------------
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Allow requests from React app during development
+]
+
+# Optional: Allow credentials (e.g., cookies) to be sent with the requests
+CORS_ALLOW_CREDENTIALS = True
+
+# Allow specific HTTP methods (e.g., POST, PUT, DELETE)
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# Allow specific headers to be included in the requests
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# -------------------------------------------------------------------
 
 # Application definition
 
@@ -34,6 +67,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'corsheaders',  # pip install django-cors-headers
     'rest_framework',
 
     # My apps
@@ -41,8 +75,13 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware',  # Add this line before CommonMiddleware
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
