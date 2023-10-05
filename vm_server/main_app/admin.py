@@ -1,3 +1,7 @@
 from django.contrib import admin
+from vm_server.main_app.models import User, VM, PyTerminal
 
-# Register your models here.
+
+admin.site.register(User)
+admin.site.register(VM)
+admin.site.register(PyTerminal)
