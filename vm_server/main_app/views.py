@@ -1,6 +1,10 @@
+from django.contrib.auth import authenticate
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+
+from rest_framework import status
+from rest_framework.views import APIView
 
 from vm_server.main_app.models import Item, User, VM, PyTerminal
 from vm_server.main_app.serializers import ItemSerializer, UserSerializer, VMSerializer, PyTerminalSerializer
@@ -269,5 +273,21 @@ def add_pyterminal(request):
         serializer.save()
     return Response(serializer.data)
 
+
+# ---------------------------------------------------------------------------------
+# Login
+# ---------------------------------------------------------------------------------
+class LoginView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        print(f"Username: {username}, Password: {password}")
+
+        all_users = User.objects.all()
+        for user in all_users:
+            if user.username == username and user.password == password:
+                return Response({'token': user.username})
+        return Response({'error': 'Wrong Credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
 # ---------------------------------------------------------------------------------

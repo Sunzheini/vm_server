@@ -5,7 +5,7 @@ from vm_server.main_app.views import (index, test,
                                       get_users_list, show_user, edit_user, delete_user, add_user,
                                       get_vms_list, show_vm, edit_vm, delete_vm, add_vm,
                                       get_pyterminals_list, show_pyterminal, edit_pyterminal, delete_pyterminal,
-                                      add_pyterminal,)
+                                      add_pyterminal, LoginView, )
 
 urlpatterns = [
     path('', index, name='index'),
@@ -87,4 +87,10 @@ urlpatterns = [
 
     # http://127.0.0.1:8000/api/pyterm/add-pyterm/
     path('api/pyterm/add-pyterm/', add_pyterminal, name='add pyterminal'),
+
+    # ---------------------------------------------------------------------------------
+    # Login
+    # ---------------------------------------------------------------------------------
+    # http://127.0.0.1:8000/api/login/
+    path('api/login/', LoginView.as_view(), name='login'),
 ]
