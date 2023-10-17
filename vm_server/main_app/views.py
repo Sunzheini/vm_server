@@ -1,3 +1,5 @@
+import subprocess
+
 from django.contrib.auth import authenticate
 from django.shortcuts import render
 from rest_framework.response import Response
@@ -55,10 +57,12 @@ def add_item(request):
         serializer.save()
     return Response(serializer.data)
 
-# post like this:
+# add and edit (POST/PUT, in postman: body --> raw --> JSON) like this:
 """
 {
-"name":"Item from post"
+"username":"Daniel Zorov",
+"password":"1",
+"is_admin": false
 }
 """
 
@@ -94,13 +98,34 @@ def update_item(request, identifier):
 
 
 # ---------------------------------------------------------------------------------
+# Functions related to other scripts
+# ---------------------------------------------------------------------------------
+def custom_function():
+    print("Hello from custom function")
+
+    script_path = r'C:\Appl\Projects\Python\hello_world.py'
+
+    try:
+        result = subprocess.run(["python", script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode == 0:
+            output = result.stdout
+        else:
+            output = f"Script returned an error (exit code {result.returncode}):\n{result.stderr}"
+    except Exception as e:
+        output = f"Error: {str(e)}"
+
+    return output
+
+# ---------------------------------------------------------------------------------
 # User
 # ---------------------------------------------------------------------------------
-
 @api_view(['GET'])
 def get_users_list(request):
     all_objects = User.objects.all()
     serializer = UserSerializer(all_objects, many=True)
+
+    custom_function()
+
     return Response(serializer.data)
 
 
