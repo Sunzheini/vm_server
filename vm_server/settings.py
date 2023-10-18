@@ -69,14 +69,13 @@ INSTALLED_APPS = [
 
     'corsheaders',  # pip install django-cors-headers
     'rest_framework',
+    'rest_framework.authtoken',  # for token authentication
 
     # My apps
     'vm_server.main_app',
 ]
 
 MIDDLEWARE = [
-
-
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
 

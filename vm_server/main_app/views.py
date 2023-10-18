@@ -1,6 +1,5 @@
 import subprocess
 
-from django.contrib.auth import authenticate
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -302,6 +301,11 @@ def add_pyterminal(request):
 # ---------------------------------------------------------------------------------
 # Login
 # ---------------------------------------------------------------------------------
+def token_generator(username, password):
+    token = username + password
+    return token
+
+
 class LoginView(APIView):
     def post(self, request):
         username = request.data.get('username')
@@ -312,7 +316,15 @@ class LoginView(APIView):
         all_users = User.objects.all()
         for user in all_users:
             if user.username == username and user.password == password:
-                return Response({'token': user.username})
-        return Response({'error': 'Wrong Credentials'}, status=status.HTTP_400_BAD_REQUEST)
+                # generate an unique token for the user
+                token = token_generator(username, password)
+                print(token)
 
+                return Response({
+                    'token': token,
+                    'username': user.username,
+                    'id': user.id,
+                    'is_admin': user.is_admin,
+                })
+        return Response({'error': 'Wrong Credentials'}, status=status.HTTP_400_BAD_REQUEST)
 # ---------------------------------------------------------------------------------
