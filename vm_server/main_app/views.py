@@ -1,4 +1,6 @@
 import subprocess
+from time import sleep
+import virtualbox
 
 from django.shortcuts import render
 from rest_framework.response import Response
@@ -9,6 +11,7 @@ from rest_framework.views import APIView
 
 from vm_server.main_app.models import Item, User, VM, PyTerminal
 from vm_server.main_app.serializers import ItemSerializer, UserSerializer, VMSerializer, PyTerminalSerializer
+from vm_server.main_app.vb_controller import VBController
 
 
 #  new
@@ -122,9 +125,6 @@ def custom_function():
 def get_users_list(request):
     all_objects = User.objects.all()
     serializer = UserSerializer(all_objects, many=True)
-
-    custom_function()
-
     return Response(serializer.data)
 
 
@@ -306,12 +306,31 @@ def token_generator(username, password):
     return token
 
 
+def test_the_vm():
+    virtual_machine_name = 'VM000180'
+    location_of_server_code_folder = 'C:\\Users\\User\\Desktop\\server_code'
+    # url_of_server_on_vm = 'http://192.168.56.101:5000/command'
+    # url_of_server_on_vm = 'http://127.0.0.1:5000/command'  # home
+    url_of_server_on_vm = 'http://172.23.139.29:5000/command'  # when on festo wifi and after changing the ip of the vm
+    location_for_the_log_file = 'log.txt'
+
+    vbox = virtualbox.VirtualBox()
+    session = virtualbox.Session()
+    sleep(1)
+    machine = vbox.find_machine(virtual_machine_name)
+    progress = machine.launch_vm_process(session, "gui", [])
+    progress.wait_for_completion(timeout=-1)  # -1 means wait indefinitely
+    sleep(30)
+
+
 class LoginView(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
 
         print(f"Username: {username}, Password: {password}")
+
+        test_the_vm()
 
         all_users = User.objects.all()
         for user in all_users:
@@ -327,4 +346,5 @@ class LoginView(APIView):
                     'is_admin': user.is_admin,
                 })
         return Response({'error': 'Wrong Credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
 # ---------------------------------------------------------------------------------

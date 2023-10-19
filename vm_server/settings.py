@@ -18,15 +18,29 @@ SECRET_KEY = 'django-insecure-&eteg8**+jh+x1ziy789bh^ppcgxyk5w4dj@ikc@ap-3ejuxvp
 DEBUG = True
 # DEBUG = False
 
+"""
+Add the ips below to ALLOWED_HOSTS and CORS_ALLOWED_ORIGINS
+Add your IP to the field Host in Edit Configurations
+Change the urls inside the react app not to 127.. but real ip in:
+    loginService.js, userService.js, vmService.js, App.js (for the login)
+"""
+
+
 ALLOWED_HOSTS = [
     'localhost',
+    '0.0.0.0',          # added
     '127.0.0.1',
+    '172.23.139.33',    # added my ip in the network
+
+    '172.23.139.27',    # external ip
+    '172.23.138.56',    # external ip
 ]
 
 # CORS ----------------------------------------------------------------
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Allow requests from React app during development
+    "http://172.23.139.33:3000",  # Allow requests from React app during development
 ]
 
 # Optional: Allow credentials (e.g., cookies) to be sent with the requests
@@ -69,7 +83,7 @@ INSTALLED_APPS = [
 
     'corsheaders',  # pip install django-cors-headers
     'rest_framework',
-    'rest_framework.authtoken',  # for token authentication
+    # 'rest_framework.authtoken',  # for token authentication
 
     # My apps
     'vm_server.main_app',
