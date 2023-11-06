@@ -1,6 +1,7 @@
 import subprocess
 from time import sleep
 import virtualbox
+from django.core.management import call_command
 
 from django.shortcuts import render
 from rest_framework.response import Response
@@ -209,6 +210,16 @@ def edit_vm(request, identifier):
     except VM.DoesNotExist:
         return Response({'error': 'VM not found'}, status=404)
 
+
+
+
+    call_command('close_vb_controller')
+
+
+
+
+
+
     serializer = VMSerializer(vm, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
@@ -306,23 +317,6 @@ def token_generator(username, password):
     return token
 
 
-def test_the_vm():
-    virtual_machine_name = 'VM000180'
-    location_of_server_code_folder = 'C:\\Users\\User\\Desktop\\server_code'
-    # url_of_server_on_vm = 'http://192.168.56.101:5000/command'
-    # url_of_server_on_vm = 'http://127.0.0.1:5000/command'  # home
-    url_of_server_on_vm = 'http://172.23.139.29:5000/command'  # when on festo wifi and after changing the ip of the vm
-    location_for_the_log_file = 'log.txt'
-
-    vbox = virtualbox.VirtualBox()
-    session = virtualbox.Session()
-    sleep(1)
-    machine = vbox.find_machine(virtual_machine_name)
-    progress = machine.launch_vm_process(session, "gui", [])
-    progress.wait_for_completion(timeout=-1)  # -1 means wait indefinitely
-    sleep(30)
-
-
 class LoginView(APIView):
     def post(self, request):
         username = request.data.get('username')
@@ -330,7 +324,8 @@ class LoginView(APIView):
 
         print(f"Username: {username}, Password: {password}")
 
-        test_the_vm()
+        call_command('my_vb_controller')
+        sleep(30)
 
         all_users = User.objects.all()
         for user in all_users:
