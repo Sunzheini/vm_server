@@ -1,23 +1,35 @@
 import os.path
 from os.path import join
 from pathlib import Path
-
 from django.urls import reverse_lazy
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-&eteg8**+jh+x1ziy789bh^ppcgxyk5w4dj@ikc@ap-3ejuxvp'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-# DEBUG = False
 
+# ---------------------------------------------------------------------------------
+# Global variables
+# ---------------------------------------------------------------------------------
+virtual_machine_name = 'VM000180'
+location_of_server_code_folder = 'C:\\Users\\User\\Desktop\\server_code'
+
+url_of_server_on_vm = 'http://192.168.56.101:5000/command'   # home1
+# url_of_server_on_vm = 'http://127.0.0.1:5000/command'      # home2
+# url_of_server_on_vm = 'http://172.23.139.29:5000/command'  # when on festo wifi and after changing the ip of the vm
+# url_of_server_on_vm = 'http://172.23.123.57:5000/command'  # when on new office wifi and after changing the ip of the vm
+
+location_for_the_log_file = 'log.txt'
+desired_format_of_the_logged_date_and_time = "%d/%m/%Y %H:%M:%S"
+
+# ---------------------------------------------------------------------------------
+# IP addresses
+# ---------------------------------------------------------------------------------
 """
 Add the ips below to ALLOWED_HOSTS and CORS_ALLOWED_ORIGINS
 Add your IP to the field Host in Edit Configurations
@@ -25,36 +37,29 @@ Change the urls inside the react app not to 127.. but real ip in:
     loginService.js, userService.js, vmService.js, App.js (for the login)
 """
 
-
 ALLOWED_HOSTS = [
     'localhost',
     '0.0.0.0',          # added
     '127.0.0.1',
-    '172.23.139.33',    # added my ip in the network
-
-    '172.23.139.27',    # external ip
-    '172.23.138.56',    # external ip
+    # '172.23.139.33',    # added my ip in the network of old office
+    '172.23.123.57',    # added my ip in the network of new office
+    # '172.23.139.27',    # external ip Mariyan old office
+    # '172.23.138.56',    # external ip Georgi old office
+    '172.23.122.102',   # external ip Mariyan new office
+    '172.23.122.107',   # external ip Georgi new office
 ]
 
-# CORS ----------------------------------------------------------------
-
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Allow requests from React app during development
-    "http://172.23.139.33:3000",  # Allow requests from React app during development
+    "http://localhost:3000",        # Allow requests from React app during development
+    # "http://172.23.139.33:3000",  # Allow requests from React app during development in old office
+    "http://172.23.123.57:3000",    # Allow requests from React app during development in new office
 ]
 
 # Optional: Allow credentials (e.g., cookies) to be sent with the requests
 CORS_ALLOW_CREDENTIALS = True
 
 # Allow specific HTTP methods (e.g., POST, PUT, DELETE)
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
+CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT',]
 
 # Allow specific headers to be included in the requests
 CORS_ALLOW_HEADERS = [
@@ -70,7 +75,6 @@ CORS_ALLOW_HEADERS = [
 ]
 
 # -------------------------------------------------------------------
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -83,10 +87,11 @@ INSTALLED_APPS = [
 
     'corsheaders',  # pip install django-cors-headers
     'rest_framework',
-    # 'rest_framework.authtoken',  # for token authentication
 
-    # My apps
     'vm_server.main_app',
+    'vm_server.user_management',
+    'vm_server.virtual_machines',
+    'vm_server.py_terminals',
 ]
 
 MIDDLEWARE = [
