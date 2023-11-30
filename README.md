@@ -5,17 +5,13 @@ A django server on a virtual machine, which accepts commands and executes corres
 2. Add / Change the corresponding global variables and ip addresses in settings.py
 3. Run the server
 
-Wednesday:
-1. Read about connecting to mongodb (on cloud)
-2. PyTerminal
-
-Thursday:
-1. Stylize the React Server
-2. Videos -> what is left to be done?
-
 Friday:
-1. Refactor and clean the code of the React Server
-2. Documentation backend and frontend
+1. PyTerminal Create and Edit forms give errors
+2. 3 x Videos -> what is left to be done?
+
+Next Week:
+1. Documentation backend and frontend
+2. Transfer to home pc
 
 After:
 1. Fix the Engine class and the Controllers to work with the real vms

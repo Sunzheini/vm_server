@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     'vm_server.main_app',
     'vm_server.user_management',
     'vm_server.virtual_machines',
+    'vm_server.py_scripts',
     'vm_server.py_terminals',
 ]
 
@@ -169,6 +170,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

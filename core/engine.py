@@ -47,6 +47,29 @@ class Engine:
         new_object.save()
 
     @staticmethod
+    def update_the_pyscript_model(item, serializer, file):
+        item.script_file = file
+        item.save()
+
+        message_update = "File uploaded successfully"
+        print(message_update)
+
+        item.update_status(message_update)
+        item.save()
+
+    @staticmethod
+    def run_the_pyscript_model(item, script_is_executed):
+        if script_is_executed:
+            item.script_is_executed = False
+            item.save()
+
+            message_update = "Script executed successfully"
+            print(message_update)
+
+            item.update_status(message_update)
+            item.save()
+
+    @staticmethod
     def decide_actions_based_on_changes(old_state_object, new_state_ordered_dict):
         """
         Evaluates the need of other actions, based on the object's fields

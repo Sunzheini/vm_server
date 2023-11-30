@@ -71,7 +71,7 @@ def time_measurement_decorator(func):
         current_date_time = _get_current_date_time()
         info = f"[{current_date_time}]: {func.__name__} took: {_turn_to_seconds(measurement):.3f}s with result: {result}"
         _log_the_result(info)
-        # print(info)
+        print(info)
 
         return result
     return wrapper

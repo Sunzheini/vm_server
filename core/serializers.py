@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
-from vm_server.py_terminals.models import PyTerminal
 from vm_server.user_management.models import User
 from vm_server.virtual_machines.models import VM
+from vm_server.py_scripts.models import PyScript
+from vm_server.py_terminals.models import PyTerminal
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -14,6 +15,12 @@ class UserSerializer(serializers.ModelSerializer):
 class VMSerializer(serializers.ModelSerializer):
     class Meta:
         model = VM
+        fields = '__all__'
+
+
+class PyScriptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PyScript
         fields = '__all__'
 
 
