@@ -10,7 +10,7 @@ urlpatterns = [
     path('py-scripts-list/', get_py_scripts_list, name='get py_scripts list'),
 
     # http://127.0.0.1:8000/py-scripts/add-py-script/
-    path('add-py-script/', add_py_script, name='add py_script'),
+    path('add-py-script/', AddPyscriptView.as_view(), name='add py_script'),
 
     # http://127.0.0.1:8000/py-scripts/show-py-script/1/
     path('show-py-script/<str:identifier>/', show_py_script, name='show py_script'),

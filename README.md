@@ -5,13 +5,10 @@ A django server on a virtual machine, which accepts commands and executes corres
 2. Add / Change the corresponding global variables and ip addresses in settings.py
 3. Run the server
 
-Friday:
-1. PyTerminal Create and Edit forms give errors
-2. 3 x Videos -> what is left to be done?
-
 Next Week:
-1. Documentation backend and frontend
-2. Transfer to home pc
+1. Transfer to home pc
+2. Documentation backend and frontend. Detailed .md file for the React
+3. Data Validation
 
 After:
 1. Fix the Engine class and the Controllers to work with the real vms

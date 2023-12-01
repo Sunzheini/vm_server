@@ -6,7 +6,7 @@ class PyScript(models.Model):
     script_file = models.FileField(upload_to='uploads/', blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
-    script_is_executed = models.BooleanField(default=False)
+    script_is_executed = models.BooleanField(default=False, blank=True, null=True)
 
     script_status = models.TextField(blank=True, null=True)
 

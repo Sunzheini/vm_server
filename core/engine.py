@@ -33,13 +33,17 @@ class Engine:
     # Action Distribution
     # ---------------------------------------------------------------
     @staticmethod
-    def update_the_vm_model(item, serializer):
+    def update_the_model(model, item, serializer):
         # these are the 2 states of the object
         old_state = item
         new_state = serializer.validated_data
+        message_update = ''
 
         # use the 2 states to evaluate the need of other actions
-        message_update = Engine.decide_actions_based_on_changes(old_state, new_state)
+        if model.__name__ == 'VM':
+            message_update = Engine.vm_decide_actions_based_on_changes(old_state, new_state)
+        elif model.__name__ == 'PyScript':
+            message_update = Engine.pyscript_decide_actions_based_on_changes(old_state, new_state)
 
         # continue with the update
         new_object = serializer.save()
@@ -47,30 +51,26 @@ class Engine:
         new_object.save()
 
     @staticmethod
-    def update_the_pyscript_model(item, serializer, file):
-        item.script_file = file
-        item.save()
+    def pyscript_decide_actions_based_on_changes(old_state_object, new_state_ordered_dict):
+        """
+        Evaluates the need of other actions, based on the object's fields
+        @param old_state: the saved state of the object in the db, i.e. TwinCAT
+        @param new_state: the new state of the object, i.e. React
+        @return:
+        """
+        key = list(new_state_ordered_dict.keys())[0]
+        value = new_state_ordered_dict[key]
 
-        message_update = "File uploaded successfully"
-        print(message_update)
-
-        item.update_status(message_update)
-        item.save()
-
-    @staticmethod
-    def run_the_pyscript_model(item, script_is_executed):
-        if script_is_executed:
-            item.script_is_executed = False
-            item.save()
-
-            message_update = "Script executed successfully"
-            print(message_update)
-
-            item.update_status(message_update)
-            item.save()
+        if key == 'script_name':
+            if value != old_state_object.script_name:
+                return f'Changed script_name to: {value}'
+        elif key == 'script_is_executed':
+            return 'Executed script'
+        else:
+            return 'Updated status'
 
     @staticmethod
-    def decide_actions_based_on_changes(old_state_object, new_state_ordered_dict):
+    def vm_decide_actions_based_on_changes(old_state_object, new_state_ordered_dict):
         """
         Evaluates the need of other actions, based on the object's fields
         @param old_state_object: the saved state of the object in the db, i.e. TwinCAT

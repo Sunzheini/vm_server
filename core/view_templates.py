@@ -1,5 +1,4 @@
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
 
 from core.decorators import time_measurement_decorator
 from core.engine import Engine
@@ -29,19 +28,8 @@ class ViewTemplates:
         @return: A response with the created object
         """
         serializer = model_serializer(data=request.data)
-
         if serializer.is_valid():
             serializer.save()
-
-            """
-            In the modified version, the view expects that the file upload is part of the request's data. The key 
-            'script_file' should match the key used by your frontend when sending the file.or If your 
-            frontend sends the file differently or uses a different key:
-            if 'script_file' in request.data:
-                # assuming 'script_file' is the key used by your frontend
-                new_script = PyScript(script_file=request.data['script_file'])
-                new_script.save()
-            """
 
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
@@ -99,16 +87,8 @@ class ViewTemplates:
 
         if serializer.is_valid():
             # check if model is VM
-            if model.__name__ == 'VM':
-                Engine.update_the_vm_model(item, serializer)
-
-            # check if model is PyScript
-            elif model.__name__ == 'PyScript':
-                if 'script_file' in request.data:
-                    file = request.data['script_file']
-                    Engine.update_the_pyscript_model(item, serializer, file)
-                elif 'script_is_executed' in request.data:
-                    Engine.run_the_pyscript_model(item, request.data['script_is_executed'])
+            if model.__name__ == 'VM' or model.__name__ == 'PyScript':
+                Engine.update_the_model(model, item, serializer)
 
             # for the other models
             else:

@@ -1,4 +1,8 @@
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+
 
 from core.serializers import PyScriptSerializer
 from core.view_templates import ViewTemplates
@@ -15,14 +19,15 @@ def get_py_scripts_list(request):
     return ViewTemplates.list_view_template(PyScript, PyScriptSerializer)
 
 
-@api_view(['POST'])
-def add_py_script(request):
-    """
-    It is an API view that creates a new py_script by using the create_view_template static method
-    @param request:
-    @return: a response with the created py_script
-    """
-    return ViewTemplates.create_view_template(PyScriptSerializer, request)
+class AddPyscriptView(APIView):
+    parser_classes = (MultiPartParser, FormParser,)
+
+    def post(self, request, *args, **kwargs):
+        serializer = PyScriptSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
 
 
 @api_view(['GET'])
