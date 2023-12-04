@@ -1,39 +1,18 @@
-import os
-import requests
-
-from controllers.server_communicator_instance import srv_communicator
-from controllers.vb_controller_instance import vb_controller
-
-
-# ToDo: fix engine.py starting from evaluate_need_of_other_actions!
-url = 'https://github.com/Sunzheini/zed_hub/blob/main/README.md'
-
+# This file contains the Engine class, which is responsible for the logic of the application.
+# The Engine class is static, so it can be used without instantiating it.
 
 class Engine:
-    # ---------------------------------------------------------------
-    # URL
-    # ---------------------------------------------------------------
-    @staticmethod
-    def download_text_from_url(address):
-        response = requests.get(url)
-        response.raise_for_status()
-        return response.text
-
-    @staticmethod
-    def get_it(address):
-        try:
-            text_content = Engine.download_text_from_url(url)
-            if text_content is not None:
-                print("Text content:")
-                print(text_content)
-        except Exception as e:
-            print(f"Error: {e}")
-
     # ---------------------------------------------------------------
     # Action Distribution
     # ---------------------------------------------------------------
     @staticmethod
     def update_the_model(model, item, serializer):
+        """
+        Updates the model, based on the serializer's data
+        @param model:
+        @param item:
+        @param serializer:
+        """
         # these are the 2 states of the object
         old_state = item
         new_state = serializer.validated_data
@@ -56,7 +35,7 @@ class Engine:
         Evaluates the need of other actions, based on the object's fields
         @param old_state: the saved state of the object in the db, i.e. TwinCAT
         @param new_state: the new state of the object, i.e. React
-        @return:
+        @return: String with the action that needs to be performed
         """
         key = list(new_state_ordered_dict.keys())[0]
         value = new_state_ordered_dict[key]
@@ -77,7 +56,7 @@ class Engine:
         @param new_state_ordered_dict: an ordered dict with the object's fields and values,
         contains only the fields that have changed!
         I.e. `OrderedDict([('connection_is_online', True)])`
-        @return:
+        @return: String with the action that needs to be performed
         """
         key = list(new_state_ordered_dict.keys())[0]
         value = new_state_ordered_dict[key]

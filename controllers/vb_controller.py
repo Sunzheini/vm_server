@@ -5,6 +5,9 @@ from core.decorators import time_measurement_decorator
 
 
 class VBController:
+    """
+    This class is responsible for the communication with the VirtualBox
+    """
     def __init__(self, machine_name, location_of_server):
         self.machine_name = machine_name
 

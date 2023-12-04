@@ -6,6 +6,9 @@ from vm_server.py_scripts.models import PyScript
 from vm_server.py_terminals.models import PyTerminal
 
 
+# These are the serializers for the models
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

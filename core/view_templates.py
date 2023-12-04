@@ -22,7 +22,7 @@ class ViewTemplates:
     @time_measurement_decorator
     def create_view_template(model_serializer, request):
         """
-        A template for a create view with file upload support.
+        A template for a create view=.
         @param model_serializer:
         @param request:
         @return: A response with the created object
@@ -62,8 +62,7 @@ class ViewTemplates:
     @time_measurement_decorator
     def edit_view_template(model, model_serializer, identifier, alternative_field_name, request):
         """
-        A template for an edit view with file upload support.
-        Bound to a method of the Engine class, which is called after
+        A template for an edit view. Bound to a method of the Engine class, which is called after
         the object is saved. The method decides if other actions are needed, based
         on the object's fields.
         @param model:
