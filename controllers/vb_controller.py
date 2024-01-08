@@ -14,6 +14,7 @@ class VBController:
         self.vbox = None
         self.session = None
         self.machine_object = None
+
         self.progress = None
 
         self.location_of_server = location_of_server

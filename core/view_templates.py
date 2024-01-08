@@ -85,7 +85,7 @@ class ViewTemplates:
         serializer = model_serializer(item, data=request.data, partial=True)
 
         if serializer.is_valid():
-            # check if model is VM
+            # check if model is VM or PyScript, which need special treatment
             if model.__name__ == 'VM' or model.__name__ == 'PyScript':
                 Engine.update_the_model(model, item, serializer)
 

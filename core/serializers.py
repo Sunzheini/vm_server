@@ -6,7 +6,9 @@ from vm_server.py_scripts.models import PyScript
 from vm_server.py_terminals.models import PyTerminal
 
 
-# These are the serializers for the models
+"""
+These are the serializers for the models: User, VM, PyScript, PyTerminal.
+"""
 
 
 class UserSerializer(serializers.ModelSerializer):

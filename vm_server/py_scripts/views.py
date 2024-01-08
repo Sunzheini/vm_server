@@ -20,6 +20,9 @@ def get_py_scripts_list(request):
 
 
 class AddPyscriptView(APIView):
+    """
+    It is an API view that creates a py_script by using the create_view_template static method
+    """
     parser_classes = (MultiPartParser, FormParser,)
 
     def post(self, request, *args, **kwargs):

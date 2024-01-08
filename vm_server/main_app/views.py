@@ -46,8 +46,16 @@ def _token_generator(username, password):
 
 
 class LoginView(APIView):
+    """
+    A view for the login logic
+    """
     @staticmethod
     def post(request):
+        """
+        A view overwriting the post view and adding the login logic
+        @param request:
+        @return: returns a token if the user is found, else an error
+        """
         username = request.data.get('username')
         password = request.data.get('password')
 

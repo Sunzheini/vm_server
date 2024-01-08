@@ -1,5 +1,8 @@
 from controllers.vb_controller import VBController
-from vm_server.settings import virtual_machine_name, location_of_server_code_folder
+
+
+virtual_machine_name = 'VM000180'
+location_of_server_code_folder = 'C:\\Users\\User\\Desktop\\server_code'
 
 
 """

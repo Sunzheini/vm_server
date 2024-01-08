@@ -62,7 +62,7 @@ def delete_vm(request, identifier):
 
 class VMTypeView(APIView):
     def get(self, request, *args, **kwargs):
-        # Assuming your VM types are defined in vm_type_choices
+        # Assuming VM types are defined in vm_type_choices
         vm_types = [{'vm_type': choice[0]} for choice in vm_type_choices]
         serializer = VMTypeSerializer(vm_types, many=True)
         return Response(serializer.data)

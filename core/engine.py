@@ -1,10 +1,23 @@
 # This file contains the Engine class, which is responsible for the logic of the application.
 # The Engine class is static, so it can be used without instantiating it.
+import pickle
+
+import virtualbox
+
+from controllers.server_communicator import ServerCommunicator
+from vm_server.settings import url_of_server_on_vm
 
 class Engine:
     # ---------------------------------------------------------------
     # Action Distribution
     # ---------------------------------------------------------------
+    VBOX = virtualbox.VirtualBox()
+    SESSION = virtualbox.Session()
+    MACHINE = None
+    WINDOW = None
+
+    COMM = ServerCommunicator(url_of_server_on_vm)
+
     @staticmethod
     def update_the_model(model, item, serializer):
         """
@@ -67,6 +80,18 @@ class Engine:
         elif key == 'machine_is_started':
             if value != old_state_object.machine_is_started:
                 if value:
+
+                    # -----------------------------------------------------
+                    try:
+                        virtual_machine_name = 'VM000180'
+                        Engine.MACHINE = Engine.VBOX.find_machine(virtual_machine_name)
+
+                    # -----------------------------------------------------
+                    except virtualbox.library.VBoxErrorObjectNotFound:
+                        print(f"Machine {virtual_machine_name} not found")
+
+                    # -----------------------------------------------------
+
                     return 'Started machine'
                 else:
                     return 'Stopped machine'
@@ -86,12 +111,33 @@ class Engine:
         elif key == 'connection_is_online':
             if value != old_state_object.connection_is_online:
                 if value:
+
+                    # -----------------------------------------------------
+                    try:
+                        Engine.WINDOW = Engine.MACHINE.launch_vm_process(Engine.SESSION, "gui", [])
+                        # Engine.WINDOW.wait_for_completion()
+                    except Exception as e:
+                        print(f'Exception: {e}')
+                    # -----------------------------------------------------
+
                     return 'Connected to PLC'
                 else:
+                    Engine.SESSION.console.power_down()
+                    Engine.SESSION.unlock_machine()
                     return 'Disconnected from PLC'
+                    # -----------------------------------------------------
+
         elif key == 'plc_is_running':
             if value != old_state_object.plc_is_running:
                 if value:
+
+                    # -----------------------------------------------------
+                    try:
+                        Engine.COMM.send_command_to_server('start_plc')
+                    except Exception as e:
+                        print(f'Exception: {e}')
+                    # -----------------------------------------------------
+
                     return 'Started PLC'
                 else:
                     return 'Stopped PLC'

@@ -1,7 +1,7 @@
 ## Virtual Machine Control REST Server
 
 # Functionalities
-This is a project created with Django in Pycharm IDE.
+This is a project created with Django Framework in Pycharm IDE.
 
 A django server on a special LabNet pc, which accepts commands both ways:
 1. By using the React frontend;
@@ -13,6 +13,16 @@ It has the following functionalities:
 this server is hosted;
 3. Accepting uploaded python scripts, which can be then executed on the same
 pc, where this server is hosted;
+
+
+# Environment variables
+In terminal: pip install python-decouple
+In settings.py: from decouple import config, Csv
+Add the needed variables
+Create a dir 'env' in the main dir and a file inside called '.env'
+point the path in Edit Configurations -> Path to ".env" files like this:
+`C:/Appl/Projects/Python/1350-FBW_lab_pc_rest_api_server_backend/envs/.env`
+and add the needed variables
 
 
 # Running the project
