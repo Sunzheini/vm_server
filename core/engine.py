@@ -1,16 +1,22 @@
 # This file contains the Engine class, which is responsible for the logic of the application.
 # The Engine class is static, so it can be used without instantiating it.
 import pickle
+import time
 
 import virtualbox
 
 from controllers.server_communicator import ServerCommunicator
 from vm_server.settings import url_of_server_on_vm
 
+
 class Engine:
     # ---------------------------------------------------------------
     # Action Distribution
     # ---------------------------------------------------------------
+
+    # Oracle software running, ram16, chipset ICH9, pointing device mouse,
+    # enable io apic, processors 6, enable paenx
+
     VBOX = virtualbox.VirtualBox()
     SESSION = virtualbox.Session()
     MACHINE = None
@@ -81,14 +87,14 @@ class Engine:
             if value != old_state_object.machine_is_started:
                 if value:
 
+                    # ToDo: integrate VmController here
                     # -----------------------------------------------------
                     try:
-                        virtual_machine_name = 'VM000180'
+                        virtual_machine_name: str = 'VM000180'
                         Engine.MACHINE = Engine.VBOX.find_machine(virtual_machine_name)
-
-                    # -----------------------------------------------------
                     except virtualbox.library.VBoxErrorObjectNotFound:
                         print(f"Machine {virtual_machine_name} not found")
+                        return 'Machine not found'
 
                     # -----------------------------------------------------
 
@@ -108,6 +114,7 @@ class Engine:
             return 'Compiled program'
         elif key == 'program_is_downloaded':
             return 'Downloaded program'
+
         elif key == 'connection_is_online':
             if value != old_state_object.connection_is_online:
                 if value:
