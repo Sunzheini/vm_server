@@ -1,91 +1,143 @@
-from time import sleep
+import subprocess
 import virtualbox
-
-from core.decorators import time_measurement_decorator
 
 
 class VBController:
     """
-    This class is responsible for the communication with the VirtualBox
+    This class is responsible for the communication with the VirtualBox.
+    You have 2 options for starting and stopping the virtual machine!
     """
-    def __init__(self, machine_name, location_of_server):
-        self.machine_name = machine_name
-
+    def __init__(self):
+        # 1
         self.vbox = None
         self.session = None
+        self._create_vbox_object_and_session()
+
+        # 2
         self.machine_object = None
+        self.window = None
 
-        self.progress = None
-
-        self.location_of_server = location_of_server
-        self.first_server_command = f"cd {self.location_of_server}"
-        self.second_server_command = f"python main.py"
-
+    # 1
     def _create_vbox_object_and_session(self):
+        """
+        Creates the vbox and session objects
+        """
         self.vbox = virtualbox.VirtualBox()
         self.session = virtualbox.Session()
-        sleep(1)
 
-    def _create_machine_object(self):
+    # 2
+    def _create_machine_object(self, vm_name):
+        """
+        Creates the machine object
+        @param vm_name: the name of the vm
+        @return: Success or Machine not found
+        """
         try:
-            self.machine_object = self.vbox.find_machine(self.machine_name)
+            self.machine_object = self.vbox.find_machine(vm_name)
         except virtualbox.library.VBoxErrorObjectNotFound:
-            print(f"Machine {self.machine_name} not found")
-        sleep(1)
+            return f"Machine {vm_name} not found"
+        return "Success"
 
-    @time_measurement_decorator
-    def initiate(self):
-        self._create_vbox_object_and_session()
-        self._create_machine_object()
+    # 2
+    def _start_machine_in_window(self):
+        """
+        Starts the machine in a window
+        @return: Success or Exception
+        """
+        try:
+            self.window = self.machine_object.launch_vm_process(self.session, "gui", [])
+        except Exception as e:
+            return f"Exception: {e}"
+        return "Success"
 
-    def print_list_of_vms(self):
-        print([m.name for m in self.vbox.machines])
+    # 2
+    @staticmethod
+    def _start_machine_in_window2(vm_name):
+        """
+        Starts the machine in a window, option 2 using subprocess and vboxmanage
+        @param vm_name:
+        @return: Success or Error starting Virtual Machine {vm_name}.
+        """
+        try:
+            subprocess.run(['vboxmanage', 'startvm', vm_name], check=True)
+        except subprocess.CalledProcessError:
+            return f"Error starting Virtual Machine {vm_name}."
+        return "Success"
 
-    def check_states(self):
-        current_machine_state = self.machine_object.state
-        current_session_state = self.session.state
-        print("----------------------------------------------------")
-        print(f"Machine state: {current_machine_state}, Session state: {current_session_state}")
-        print("----------------------------------------------------")
-        print()
+    # 2
+    def initiate_machine(self, vm_name):
+        """
+        Initiates the machine
+        @param vm_name: the name of the vm
+        """
+        result = self._create_machine_object(vm_name)
+        if result != "Success":
+            return result
 
-    def unlock_session(self):
+        # result = self._start_machine_in_window()
+        result = self._start_machine_in_window2(vm_name)
+        if result != "Success":
+            return result
+
+        return "Success"
+
+    # 3
+    def _shutdown_machine(self):
+        """
+        Shuts down the machine
+
+        VBoxManage controlvm <vm> poweroff: Has the same effect on a virtual
+            machine as pulling the power cable on a real computer. The state of the
+            VM is not saved beforehand, and data may be lost. This is equivalent to
+            selecting the Close item in the Machine menu of the GUI, or clicking the
+            VM window's close button, and then selecting Power Off the Machine in
+            the displayed dialog.
+        @return: Success or Error stopping Virtual Machine {vm_name}.
+        """
+        try:
+            self.session.console.power_down()
+            # self._unlock_session()
+        except Exception as e:
+            return f"Error stopping Virtual Machine {self.machine_object.name}."
+        return "Success"
+
+    # 3
+    @staticmethod
+    def _shutdown_machine2(vm_name):
+        """
+        Shuts down the machine, option 2 using subprocess and vboxmanage.
+
+        VBoxManage controlvm <vm> savestate: Saves the current state of
+            the VM to disk and then stops the VM. This is equivalent to
+            selecting the Close item in the Machine menu of the GUI or clicking
+            the VM window's close button, and then selecting Save the Machine
+            State in the displayed dialog.
+        @param vm_name:
+        @return: Success or Error stopping Virtual Machine {vm_name}.
+        """
+        try:
+            subprocess.run(['vboxmanage', 'controlvm', vm_name, 'savestate'], check=True)
+        except subprocess.CalledProcessError:
+            return f"Error stopping Virtual Machine {vm_name}."
+        return "Success"
+
+    # 3
+    def _unlock_session(self):
         self.session.unlock_machine()
 
-    def lock_session(self):
+    # 3
+    def _lock_session(self):
         self.machine_object.lock_machine(self.session, virtualbox.library.LockType.shared)
 
-    @time_measurement_decorator
-    def start_machine_in_window(self):
-        self.progress = self.machine_object.launch_vm_process(self.session, "gui", [])
-
-        self.progress.wait_for_completion(timeout=-1)  # -1 means wait indefinitely
-        if self.progress.result_code != 0:
-            raise Exception(f'Failed to start machine: {self.progress.error_info.text}')
-
-    @time_measurement_decorator
-    def send_kb_command_for_log_in(self):
-        self.send_kb_command("q\n")
-        sleep(2)
-        self.send_kb_command("pass\n")
-        sleep(2)
-
-    @time_measurement_decorator
-    def send_kb_command(self, command):
-        self.session.console.keyboard.put_keys(command + "\n")
-        sleep(2)
-
-    @time_measurement_decorator
-    def power_down(self):
-        # hard shutdown
-        self.session.console.power_down()
-
-        # Send ACPI power button event: currently ACPI not working
+    # 3
+    def power_down(self, vm_name):
         """
-        self.session.console.power_button()
-
-        while self.machine_object.state != virtualbox.library.MachineState.powered_off:
-            sleep(1)
+        Shuts down the machine
+        @return: Success or Error stopping Virtual Machine {vm_name}.
         """
+        result = self._shutdown_machine2(vm_name)
+        if result != "Success":
+            return result
 
-        self.unlock_session()
+        return "Success"
+

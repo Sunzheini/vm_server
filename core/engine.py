@@ -1,36 +1,30 @@
-# This file contains the Engine class, which is responsible for the logic of the application.
-# The Engine class is static, so it can be used without instantiating it.
-import pickle
-import time
-
-import virtualbox
-
+from controllers.pyscript_runner import PyScriptRunner
 from controllers.server_communicator import ServerCommunicator
+from controllers.vb_controller import VBController
 from vm_server.settings import url_of_server_on_vm
 
 
 class Engine:
-    # ---------------------------------------------------------------
-    # Action Distribution
-    # ---------------------------------------------------------------
+    """
+    The Engine class is responsible for the logic of the application. Connects the requests from the client
+    with the specific logic for the virtual machine control and/or python script execution.
+    """
+    # Keep the selected vm name in a class variable
+    SELECTED_VM_NAME = None
 
-    # Oracle software running, ram16, chipset ICH9, pointing device mouse,
-    # enable io apic, processors 6, enable paenx
+    # Initiate the controllers
+    VB_CONTROLLER = VBController()
+    COMMUNICATOR = ServerCommunicator(url_of_server_on_vm)
+    PYSCRIPT_RUNNER = PyScriptRunner()
 
-    VBOX = virtualbox.VirtualBox()
-    SESSION = virtualbox.Session()
-    MACHINE = None
-    WINDOW = None
-
-    COMM = ServerCommunicator(url_of_server_on_vm)
-
+    # Action Distribution based on received command from the client
     @staticmethod
     def update_the_model(model, item, serializer):
         """
         Updates the model, based on the serializer's data
-        @param model:
-        @param item:
-        @param serializer:
+        @param model: The model class
+        @param item: The corresponding object from the db
+        @param serializer: The serializer
         """
         # these are the 2 states of the object
         old_state = item
@@ -52,8 +46,13 @@ class Engine:
     def pyscript_decide_actions_based_on_changes(old_state_object, new_state_ordered_dict):
         """
         Evaluates the need of other actions, based on the object's fields
-        @param old_state: the saved state of the object in the db, i.e. TwinCAT
-        @param new_state: the new state of the object, i.e. React
+        When calling Engine.PYSCRIPT_RUNNER.run_script, the script_name is passed as an argument
+        and looks like `uploads/hello_world.py`.
+        @param new_state_ordered_dict:
+        @param old_state_object: The saved state of the object in the db, i.e. TwinCAT,
+        if called directly will display the object's name
+        @param new_state_ordered_dict: an ordered dict with the object's fields and values,
+        contains only the fields that have changed!
         @return: String with the action that needs to be performed
         """
         key = list(new_state_ordered_dict.keys())[0]
@@ -62,8 +61,11 @@ class Engine:
         if key == 'script_name':
             if value != old_state_object.script_name:
                 return f'Changed script_name to: {value}'
+
         elif key == 'script_is_executed':
-            return 'Executed script'
+            result = Engine.PYSCRIPT_RUNNER.run_script(old_state_object.script_file)
+            return result
+
         else:
             return 'Updated status'
 
@@ -71,7 +73,8 @@ class Engine:
     def vm_decide_actions_based_on_changes(old_state_object, new_state_ordered_dict):
         """
         Evaluates the need of other actions, based on the object's fields
-        @param old_state_object: the saved state of the object in the db, i.e. TwinCAT
+        @param old_state_object: the saved state of the object in the db, i.e. TwinCAT,
+        if called directly will display the object's name
         @param new_state_ordered_dict: an ordered dict with the object's fields and values,
         contains only the fields that have changed!
         I.e. `OrderedDict([('connection_is_online', True)])`
@@ -79,80 +82,135 @@ class Engine:
         """
         key = list(new_state_ordered_dict.keys())[0]
         value = new_state_ordered_dict[key]
+        """
+        Now we check the key and value and decide what to do. Each key corresponds to a
+        specific button on the frontend.
+        """
 
+        # key: vm_name
+        # -----------------------------------------------------
         if key == 'vm_name':
             if value != old_state_object.vm_name:
                 return f'Changed vm_name to: {value}'
+
+        # key: machine_is_started
+        # -----------------------------------------------------
         elif key == 'machine_is_started':
             if value != old_state_object.machine_is_started:
+                # assign the selected vm name to the class variable
+                Engine.SELECTED_VM_NAME = old_state_object.vm_name
+
                 if value:
-
-                    # ToDo: integrate VmController here
-                    # -----------------------------------------------------
                     try:
-                        virtual_machine_name: str = 'VM000180'
-                        Engine.MACHINE = Engine.VBOX.find_machine(virtual_machine_name)
-                    except virtualbox.library.VBoxErrorObjectNotFound:
-                        print(f"Machine {virtual_machine_name} not found")
-                        return 'Machine not found'
-
-                    # -----------------------------------------------------
-
-                    return 'Started machine'
+                        result_string = Engine.VB_CONTROLLER.initiate_machine(Engine.SELECTED_VM_NAME)
+                        if result_string != 'Success':
+                            return result_string
+                        return 'Started machine'
+                    except Exception as e:
+                        return f'Exception: {e}'
                 else:
-                    return 'Stopped machine'
+                    try:
+                        result_string = Engine.VB_CONTROLLER.power_down(Engine.SELECTED_VM_NAME)
+                        if result_string != 'Success':
+                            return result_string
+                        return 'Stopped machine'
+                    except Exception as e:
+                        return f'Exception: {e}'
+
+        # key: path_to_selected_program
+        # -----------------------------------------------------
         elif key == 'path_to_selected_program':
             if value != old_state_object.path_to_selected_program:
-                return f'Updated path to: {value}'
+                result = Engine.COMMUNICATOR.send_command_to_server(f'change program path to: {value}')
+                if result != 'Success':
+                    return f'Changed path to: {value}'
+                else:
+                    return result
+
+        # key: program_is_open
+        # -----------------------------------------------------
         elif key == 'program_is_open':
             if value != old_state_object.program_is_open:
                 if value:
-                    return 'Opened program'
+                    result = Engine.COMMUNICATOR.send_command_to_server('open program')
+                    if result != 'Success':
+                        return 'Opened program'
+                    else:
+                        return result
                 else:
-                    return 'Closed program'
-        elif key == 'program_is_compiled':
-            return 'Compiled program'
-        elif key == 'program_is_downloaded':
-            return 'Downloaded program'
+                    result = Engine.COMMUNICATOR.send_command_to_server('close program')
+                    if result != 'Success':
+                        return 'Closed program'
+                    else:
+                        return result
 
+        # key: program_is_compiled
+        # -----------------------------------------------------
+        elif key == 'program_is_compiled':
+            result = Engine.COMMUNICATOR.send_command_to_server('compile')
+            if result != 'Success':
+                return 'Compiled program'
+            else:
+                return result
+
+        # key: program_is_downloaded
+        # -----------------------------------------------------
+        elif key == 'program_is_downloaded':
+            result = Engine.COMMUNICATOR.send_command_to_server('download')
+            if result != 'Success':
+                return 'Downloaded program'
+            else:
+                return result
+
+        # key: connection_is_online
+        # -----------------------------------------------------
         elif key == 'connection_is_online':
             if value != old_state_object.connection_is_online:
                 if value:
-
-                    # -----------------------------------------------------
-                    try:
-                        Engine.WINDOW = Engine.MACHINE.launch_vm_process(Engine.SESSION, "gui", [])
-                        # Engine.WINDOW.wait_for_completion()
-                    except Exception as e:
-                        print(f'Exception: {e}')
-                    # -----------------------------------------------------
-
-                    return 'Connected to PLC'
+                    result = Engine.COMMUNICATOR.send_command_to_server('connect')
+                    if result != 'Success':
+                        return 'Connected to PLC'
+                    else:
+                        return result
                 else:
-                    Engine.SESSION.console.power_down()
-                    Engine.SESSION.unlock_machine()
-                    return 'Disconnected from PLC'
-                    # -----------------------------------------------------
+                    result = Engine.COMMUNICATOR.send_command_to_server('disconnect')
+                    if result != 'Success':
+                        return 'Disconnected from PLC'
+                    else:
+                        return result
 
+        # key: plc_is_running
+        # -----------------------------------------------------
         elif key == 'plc_is_running':
             if value != old_state_object.plc_is_running:
                 if value:
-
-                    # -----------------------------------------------------
-                    try:
-                        Engine.COMM.send_command_to_server('start_plc')
-                    except Exception as e:
-                        print(f'Exception: {e}')
-                    # -----------------------------------------------------
-
-                    return 'Started PLC'
+                    result = Engine.COMMUNICATOR.send_command_to_server('start_plc')
+                    if result != 'Success':
+                        return 'Started PLC'
+                    else:
+                        return result
                 else:
-                    return 'Stopped PLC'
+                    result = Engine.COMMUNICATOR.send_command_to_server('stop_plc')
+                    if result != 'Success':
+                        return 'Stopped PLC'
+                    else:
+                        return result
+
+        # key: enabled
+        # -----------------------------------------------------
         elif key == 'enabled':
             if value != old_state_object.enabled:
                 if value:
-                    return 'Enabled'
+                    result = Engine.COMMUNICATOR.send_command_to_server('enable')
+                    if result != 'Success':
+                        return 'Enabled'
+                    else:
+                        return result
                 else:
-                    return 'Disabled'
+                    result = Engine.COMMUNICATOR.send_command_to_server('disable')
+                    if result != 'Success':
+                        return 'Disabled'
+                    else:
+                        return result
         else:
             return 'Updated status'
