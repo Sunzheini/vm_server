@@ -150,4 +150,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 """
 To create superuser: python manage.py createsuperuser
+
+For using the admin panel, there is a superuser:
+username: daniel
+email: daniel_zorov@abv.bg
+password: Maimun06
 """

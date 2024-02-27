@@ -22,7 +22,7 @@ class ViewTemplates:
     @time_measurement_decorator
     def create_view_template(model_serializer, request):
         """
-        A template for a create view=.
+        A template for a create view.
         @param model_serializer:
         @param request:
         @return: A response with the created object
@@ -31,6 +31,7 @@ class ViewTemplates:
         if serializer.is_valid():
             serializer.save()
 
+            # ToDo: try changing here
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 

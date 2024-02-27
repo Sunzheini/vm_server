@@ -35,5 +35,8 @@ class PyTerminalSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# ---------------------------------------------------------------
+# needed to get the vm types for the list of choices when creating a new vm
+# ---------------------------------------------------------------
 class VMTypeSerializer(serializers.Serializer):
     vm_type = serializers.CharField()

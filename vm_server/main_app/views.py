@@ -1,5 +1,6 @@
 from rest_framework import status
 from rest_framework.views import APIView
+
 from core.view_templates import *
 from vm_server.user_management.models import User
 
