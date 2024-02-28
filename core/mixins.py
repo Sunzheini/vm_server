@@ -5,8 +5,7 @@ from vm_server.virtual_machines.models import Plc, Project
 
 class RequestAndResponsePlcMetaDataMixin:
     """
-    A mixin class that contains the handle_info_exchange method, which is used to handle the info exchange between the
-    master PLC and the server.
+    A mixin class that contains needed metadata for the connection with the relevant dll classes.
     """
     _REQUEST_CLASS = 'G00_RequestPlcMetaData'
     _REQUEST_ATTRIBUTES = ['IdOfPlcToRequest', ]
@@ -24,7 +23,6 @@ class RequestAndResponsePlcMetaDataMixin:
         4. Set the Project attribute of the G01_ResponsePlcMetaData object to the new project object
         Result: object of Project class
         @param request_attributes_list: list of strings
-        @param request_attribute_value: string
         @param response_object: object of type G01_ResponsePlcMetaData
         @param dll_runner: object
         """
@@ -54,6 +52,9 @@ class RequestAndResponsePlcMetaDataMixin:
 
 
 class RequestAndResponsePlcConfigureMixin:
+    """
+    A mixin class that contains needed metadata for the connection with the relevant dll classes.
+    """
     _REQUEST_CLASS = 'G02_RequestPlcConfigure'
     _REQUEST_ATTRIBUTES = ['IdOfPlcToRequest', 'Project']
     _RESPONSE_CLASS = 'G03_ResponsePlcConfigure'
@@ -69,17 +70,24 @@ class RequestAndResponsePlcConfigureMixin:
                 dll_runner,
                 prj_to_be_loaded
             )
-            db_project_object.save()
+            print(db_project_object)
+            """
+            Result:
+            Project Id: 3, Name: Project1, Path: path..., Git hash: 123123123, Topology type: 3, Devices: []
+            """
+
+        # ToDo: continue from here.
+
+        # ToDo: After 68 is working add `not`
 
         # else, get the project object from the database
         else:
             db_project_object = Project.objects.get(git_hash=prj_to_be_loaded.GitHash)
-            # ToDo: continue from here
 
     @staticmethod
     def check_if_git_hash_exists(git_hash):
         try:
-            project = Project.objects.get(git_hash=git_hash)
+            Project.objects.get(git_hash=git_hash)
             return True
         except Project.DoesNotExist:
             return False

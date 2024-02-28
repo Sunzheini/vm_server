@@ -1,4 +1,6 @@
 import json
+from abc import abstractmethod, ABC
+
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
@@ -96,14 +98,24 @@ class VMTypeView(APIView):
         return Response(serializer.data)
 
 
-class BaseDllCommunicationClassView(APIView):
+class BaseDllCommunicationClassView(ABC, APIView):
     """
     This class is an API view that receives a POST request and returns a response, using the DLL
-    runner as an example. In the current case it handles the request-plc-meta-data endpoint.
-    Receives an id of a PLC, finds the latest project loaded on the PLC and returns it.
+    runner as an example. It is being used as a base class for the RequestAndResponsePlcMetaDataClassView
+    RequestAndResponsePlcConfigureClassView classes, and all the following classes.
+
+    The documentation is written for the RequestAndResponsePlcMetaDataClassView class, but it is
+    applicable to all the classes that inherit from this class.
     """
     @staticmethod
     def get(request, *args, **kwargs):
+        """
+        This view receives a GET request and returns a response, using the DLL runner as an example.
+        @param request: the request object
+        @param args: the arguments
+        @param kwargs: the keyword arguments
+        @return: a response with the message
+        """
         response = {'message': 'Hello, World!'}
         return Response(response, status=status.HTTP_200_OK)
 
@@ -143,25 +155,17 @@ class BaseDllCommunicationClassView(APIView):
             request_attribute_values_list.append(temp)
 
         response_object = eval(f'dll_runner.{self._RESPONSE_CLASS}()')                                              # 4
-        # return request_attribute_value, response_object
         return request_attribute_values_list, response_object
 
-    @staticmethod
-    def _after_custom_post_logic(response_object):
+    @abstractmethod
+    def custom_logic(self, request_attributes_list, response_object):
         """
-        6. Convert the G01_ResponsePlcMetaData object to a JSON string and deserialize it. The
-        json.loads() is used to deserialize a JSON string into a Python object.
-        Result: JSON string
-        7. deserialize a JSON string into a Python object. Result: dictionary
-        @param response_object: object of type G01_ResponsePlcMetaData
-        @return: a dictionary with the deserialized response
+        This method is abstract and must be implemented in the derived class. It contains the custom logic
+        @param request_attributes_list: the list of request attributes
+        @param response_object: the response object
         """
-        response = response_object.ConvertToJson()  # 6
-        deserialized_response = json.loads(response)
-        return deserialized_response
+        raise NotImplementedError('You must implement the custom_logic method in the derived class.')
 
-
-class RequestAndResponsePlcMetaDataClassView(BaseDllCommunicationClassView, RequestAndResponsePlcMetaDataMixin):
     def post(self, request, *args, **kwargs):
         """
         This view receives a POST request and returns a response, using the DLL runner as an example.
@@ -178,35 +182,52 @@ class RequestAndResponsePlcMetaDataClassView(BaseDllCommunicationClassView, Requ
         """
         try:
             request_attributes_list, response_object = self._before_custom_post_logic(request)
-
-            RequestAndResponsePlcMetaDataMixin.handle_info_exchange(
-                request_attributes_list,
-                response_object,
-                dll_runner,
-            )
-
+            self.custom_logic(request_attributes_list, response_object)
             deserialized_response = self._after_custom_post_logic(response_object)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(deserialized_response, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def _after_custom_post_logic(response_object):
+        """
+        6. Convert the G01_ResponsePlcMetaData object to a JSON string and deserialize it. The
+        json.loads() is used to deserialize a JSON string into a Python object.
+        Result: JSON string
+        7. deserialize a JSON string into a Python object. Result: dictionary
+        @param response_object: object of type G01_ResponsePlcMetaData
+        @return: a dictionary with the deserialized response
+        """
+        response = response_object.ConvertToJson()      # 6
+        deserialized_response = json.loads(response)    # 7
+        return deserialized_response
+
+
+class RequestAndResponsePlcMetaDataClassView(BaseDllCommunicationClassView, RequestAndResponsePlcMetaDataMixin):
+    def custom_logic(self, request_attributes_list, response_object):
+        """
+        In this case the custom logic is using `RequestAndResponsePlcMetaDataMixin.handle_info_exchange`
+        @param request_attributes_list: the list of request attributes
+        @param response_object: the response object
+        """
+        RequestAndResponsePlcMetaDataMixin.handle_info_exchange(
+            request_attributes_list,
+            response_object,
+            dll_runner,
+        )
 
 
 class RequestAndResponsePlcConfigureClassView(BaseDllCommunicationClassView, RequestAndResponsePlcConfigureMixin):
-    def post(self, request, *args, **kwargs):
-        try:
-            request_attributes_list, response_object = self._before_custom_post_logic(request)
-
-            RequestAndResponsePlcConfigureMixin.handle_plc_configure(
-                request_attributes_list,
-                response_object,
-                dll_runner,
-            )
-
-            deserialized_response = self._after_custom_post_logic(response_object)
-
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(deserialized_response, status=status.HTTP_200_OK)
+    def custom_logic(self, request_attributes_list, response_object):
+        """
+        In this case the custom logic is using `RequestAndResponsePlcConfigureMixin.handle_plc_configure`
+        @param request_attributes_list: the list of request attributes
+        @param response_object: the response object
+        """
+        RequestAndResponsePlcConfigureMixin.handle_plc_configure(
+            request_attributes_list,
+            response_object,
+            dll_runner,
+        )

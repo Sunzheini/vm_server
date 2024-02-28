@@ -6,9 +6,9 @@ from vm_server.settings import location_for_the_log_file, desired_format_of_the_
 def _execute_with_try_except(func, *args, **kwargs):
     """
     Wraps a function with a try-except block
-    @param func:
-    @param args:
-    @param kwargs:
+    @param func: the function to be wrapped
+    @param args: the arguments of the function
+    @param kwargs: the keyword arguments of the function
     @return: result of the function or exception
     """
     try:
@@ -21,7 +21,7 @@ def _execute_with_try_except(func, *args, **kwargs):
 def _turn_to_seconds(measurement):
     """
     Turns a measurement in seconds to milliseconds if it is less than 0.001
-    @param measurement:
+    @param measurement: the measurement in seconds
     @return: the measurement in seconds or milliseconds
     """
     if measurement < 0.001:
@@ -34,7 +34,7 @@ def _turn_to_seconds(measurement):
 def _log_the_result(result):
     """
     Logs the result in a txt file
-    @param result:
+    @param result: the result to be logged
     @return: None
     """
     log_location = location_for_the_log_file
@@ -59,7 +59,7 @@ def time_measurement_decorator(func):
     Measures the time a function takes to execute and prints the result in the console.
     Also uses _execute_with_try_except to wrap the function with a try-except block
     and logs the result in a txt file together with the current date and time
-    @param func:
+    @param func: the function to be wrapped
     @return: result of the function
     """
     def wrapper(*args, **kwargs):

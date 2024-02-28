@@ -26,7 +26,7 @@ class VBController:
         self.session = virtualbox.Session()
 
     # 2
-    def _create_machine_object(self, vm_name):
+    def _create_machine_object(self, vm_name: str) -> str:
         """
         Creates the machine object
         @param vm_name: the name of the vm
@@ -39,7 +39,7 @@ class VBController:
         return "Success"
 
     # 2
-    def _start_machine_in_window(self):
+    def _start_machine_in_window(self) -> str:
         """
         Starts the machine in a window
         @return: Success or Exception
@@ -52,7 +52,7 @@ class VBController:
 
     # 2
     @staticmethod
-    def _start_machine_in_window2(vm_name):
+    def _start_machine_in_window2(vm_name: str) -> str:
         """
         Starts the machine in a window, option 2 using subprocess and vboxmanage
         @param vm_name:
@@ -65,7 +65,7 @@ class VBController:
         return "Success"
 
     # 2
-    def initiate_machine(self, vm_name):
+    def initiate_machine(self, vm_name: str) -> str:
         """
         Initiates the machine
         @param vm_name: the name of the vm
@@ -82,7 +82,7 @@ class VBController:
         return "Success"
 
     # 3
-    def _shutdown_machine(self):
+    def _shutdown_machine(self) -> str:
         """
         Shuts down the machine
 
@@ -103,7 +103,7 @@ class VBController:
 
     # 3
     @staticmethod
-    def _shutdown_machine2(vm_name):
+    def _shutdown_machine2(vm_name: str) -> str:
         """
         Shuts down the machine, option 2 using subprocess and vboxmanage.
 
@@ -130,7 +130,7 @@ class VBController:
         self.machine_object.lock_machine(self.session, virtualbox.library.LockType.shared)
 
     # 3
-    def power_down(self, vm_name):
+    def power_down(self, vm_name: str) -> str:
         """
         Shuts down the machine
         @return: Success or Error stopping Virtual Machine {vm_name}.
@@ -140,4 +140,3 @@ class VBController:
             return result
 
         return "Success"
-

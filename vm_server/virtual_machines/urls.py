@@ -43,5 +43,5 @@ urlpatterns = [
     path('request-plc-configure/', RequestAndResponsePlcConfigureClassView().as_view(), name='master plc configure'),
 
     # http://127.0.0.1:8000/virtual-machines/request-plc-start/
-    path('request-plc-start/', BaseDllCommunicationClassView().as_view(), name='request plc start'),
+    # path('request-plc-start/', BaseDllCommunicationClassView().as_view(), name='request plc start'),
 ]

@@ -1,6 +1,8 @@
 class DbObjectToEntityTranslator:
     """
-    The EntityFactory class is used to create new objects of the classes from the .NET DLLs.
+    This class is responsible for creating an entity from a database object. The `entities`
+    are the names of the classes in the dll, which define the structure of the data, i.e. the `Device`
+    and the `Plc` class.
     """
     @staticmethod
     def create_project_entity_from_db_object(dll_runner, latest_project):
@@ -14,7 +16,6 @@ class DbObjectToEntityTranslator:
         @param latest_project: the object of the Project class
         @return: object of Project class
         """
-
         # 1
         project_name, project_path, git_hash, topology_type = (
             latest_project.project_name,

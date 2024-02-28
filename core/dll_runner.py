@@ -8,7 +8,7 @@ class DllRunner:
     This class is used to register dlls and import classes from the corresponding namespaces.
     You can then use the classes as attributes of the DllRunner object.
     """
-    def __init__(self, dll_path, dll_name, dll_imports):
+    def __init__(self, dll_path: str = None, dll_name: str = None, dll_imports: list = None):
         self._dll_folder_path = os.path.abspath(dll_path)
         self._dll_name = dll_name
         self._dll_imports = dll_imports
