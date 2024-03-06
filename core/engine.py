@@ -102,7 +102,8 @@ class Engine:
 
                 if value:
                     try:
-                        result_string = Engine.VB_CONTROLLER.initiate_machine(Engine.SELECTED_VM_NAME)
+                        # result_string = Engine.VB_CONTROLLER.initiate_machine(Engine.SELECTED_VM_NAME)
+                        result_string = 'Success'
                         if result_string != 'Success':
                             return result_string
                         return 'Started machine'
@@ -110,7 +111,8 @@ class Engine:
                         return f'Exception: {e}'
                 else:
                     try:
-                        result_string = Engine.VB_CONTROLLER.power_down(Engine.SELECTED_VM_NAME)
+                        # result_string = Engine.VB_CONTROLLER.power_down(Engine.SELECTED_VM_NAME)
+                        result_string = 'Success'
                         if result_string != 'Success':
                             return result_string
                         return 'Stopped machine'

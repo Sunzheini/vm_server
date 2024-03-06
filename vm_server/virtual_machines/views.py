@@ -10,11 +10,11 @@ from constants.constants import core_dll_path, core_dll_name, core_dll_imports, 
 framework_dll_path, framework_dll_name, framework_dll_imports
 from core.dll_runner import DllRunner
 from core.db_object_to_entity_translator import DbObjectToEntityTranslator
-from core.mixins import RequestAndResponsePlcMetaDataMixin, RequestAndResponsePlcConfigureMixin
-from core.serializers import VMSerializer, VMTypeSerializer
+from core.mixins import RequestAndResponsePlcMetaDataMixin, RequestAndResponsePlcConfigureMixin, \
+    RequestAndResponseStartVmProcessMixin
+from core.serializers import VMSerializer, VMTypeSerializer, PlcNamesSerializer
 from core.view_templates import ViewTemplates
-from vm_server.virtual_machines.models import VM, vm_type_choices
-
+from vm_server.virtual_machines.models import VM, vm_type_choices, Plc
 
 """
 Import the DLL runner and initialize it. The DLL runner is a class that is used to run .NET DLLs from Python. It is
@@ -98,6 +98,24 @@ class VMTypeView(APIView):
         return Response(serializer.data)
 
 
+class PlcNamesView(APIView):
+    def get(self, request, *args, **kwargs):
+        """
+        It is an API view that returns a list of all plc names. Needed to get the list of plc names
+        @param request: a request from the frontend requesting the plc names
+        @param args: available arguments
+        @param kwargs: available keyword arguments
+        @return: a response with the list of all plc names
+        """
+        # Assuming PLC names are defined in the database
+        plc_names = [{
+            'id': plc.pk,
+            'plc_name': plc.plc_name,
+        } for plc in Plc.objects.all()]
+        serializer = PlcNamesSerializer(plc_names, many=True)
+        return Response(serializer.data)
+
+
 class BaseDllCommunicationClassView(ABC, APIView):
     """
     This class is an API view that receives a POST request and returns a response, using the DLL
@@ -144,8 +162,10 @@ class BaseDllCommunicationClassView(ABC, APIView):
         @param request: the request object, which contains the json data
         @return: a tuple with the request attribute value and the response object
         """
-        request_data = request.data                                                                                 # 1
-        request_data_json_string = json.dumps(request_data)                                                         # 2
+        request_data = request.data
+        # 1
+        request_data_json_string = json.dumps(request_data)
+        # 2
         request_template_object = eval(f'dll_runner.{self._REQUEST_CLASS}()')                                       # 3
         deserialized_request_template_object = request_template_object.ConvertFromJson(request_data_json_string)
 
@@ -200,8 +220,16 @@ class BaseDllCommunicationClassView(ABC, APIView):
         @param response_object: object of type G01_ResponsePlcMetaData
         @return: a dictionary with the deserialized response
         """
-        response = response_object.ConvertToJson()      # 6
-        deserialized_response = json.loads(response)    # 7
+        try:
+            response = response_object.ConvertToJson()  # 6
+        except Exception as e:
+            raise e
+
+        try:
+            deserialized_response = json.loads(response)  # 7
+        except Exception as e:
+            raise e
+
         return deserialized_response
 
 
@@ -227,6 +255,15 @@ class RequestAndResponsePlcConfigureClassView(BaseDllCommunicationClassView, Req
         @param response_object: the response object
         """
         RequestAndResponsePlcConfigureMixin.handle_plc_configure(
+            request_attributes_list,
+            response_object,
+            dll_runner,
+        )
+
+
+class RequestAndResponseStartVmProcessClassView(BaseDllCommunicationClassView, RequestAndResponseStartVmProcessMixin):
+    def custom_logic(self, request_attributes_list, response_object):
+        RequestAndResponseStartVmProcessMixin.handle_start_vm_process(
             request_attributes_list,
             response_object,
             dll_runner,

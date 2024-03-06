@@ -58,7 +58,7 @@ file://festo.net/DFS05/DE/Data/Berkheim/VT/ORG_EA/PD_EA/07_Software/Windows_10/
 5. Use the image to make a virtual machine in Oracle VirtualBox.
 a) the recommended settings for the VMs: ram16, chipset ICH9, pointing 
 device mouse, enable io apic, processors 6, enable pae/nx.
-b) bridged adapter (test the internet: should be working). With NAT it shows
+b) bridged adapter (test the internet: should be working home). With NAT it shows
 as if it has internet access, however zscaler is not allowing anything.
 c) shut down the VM.
 6. Create a shared folder: Settings of the VM --> Shared Folders -->
@@ -90,8 +90,10 @@ Restart.
 8. The service should be starting automatically and each 5 sec should open cmd.exe, notepad++ and Flask server.
 9. Change the network settings inside the VM to match the network of the pc. This 
 will disable the internet access, but will enable pinging between the 2 machines. The pc on festo wifi 
-was: 179.23.139.26 and I changed the ip of the vm to 179.23.139.29 and it worked
-10. Now test the ping.
+was: 179.23.139.26 and I changed the ip of the vm to 179.23.139.29 and subnet mask to 255.255.254.0
+and it worked
+10. Now test the ping. Home it is a ping between 192.168.0.102 and 192.168.0.107 (which is obtained
+automatically by the vm).
 
 11. The virtual machine can have the option to be accessed remotely by:
 a) Installing the Oracle VM Extension Pack; 

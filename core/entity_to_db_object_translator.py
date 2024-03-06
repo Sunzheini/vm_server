@@ -26,10 +26,31 @@ class EntityToDbObjectTranslator:
         Create a new project from the project entity and save it to the database.
         1. Get the project name, project path, git hash, and topology type from the project entity
         2. Create a dictionary with .NET objects from the list of devices in the topology
+        Result:
+        [
+            <Festo.AST.Testrunner.Interfaces.Entities.Device object at 0x00000226F2BFA000>,
+            <Festo.AST.Testrunner.Interfaces.Entities.Device object at 0x00000226F2C08240>,
+            <Festo.AST.Testrunner.Interfaces.Entities.Device object at 0x00000226F2DC7FC0>
+        ]
         3. Translate the dictionary to dict with python objects
+                Result:
+        {
+            '1': {
+                'device_type': 'CMMT-AS-MP',
+                'ip_address': '192.168.2.51'
+            },
+            '2': {
+                'device_type': 'CMMT-AS-MP',
+                'ip_address': '192.168.2.52'
+            },
+            '3': {
+                'device_type': 'CMMT-ST-MP',
+                'ip_address': '192.168.2.53'
+            }
+        }
         4. Create a new project object
+        5. Save the new project object to the database
         5. Manage the devices in the topology
-        6. Save the new project object to the database
         @param dll_runner: the object of the DllRunner class
         @param project_entity: the object of the Project class of the .NET DLLs
         @return: object of Project model
@@ -42,54 +63,36 @@ class EntityToDbObjectTranslator:
             project_entity.TopologyType,
         )
 
-        # 2
-        devices_in_the_topology_python_list_with_dll_objects = dll_runner.translate_dotnet_generic_list_to_python_list(
-            project_entity.ListOfDevicesInTheTopology,
-        )
-        """
-        Result:
-        [
-            <Festo.AST.Testrunner.Interfaces.Entities.Device object at 0x00000226F2BFA000>, 
-            <Festo.AST.Testrunner.Interfaces.Entities.Device object at 0x00000226F2C08240>, 
-            <Festo.AST.Testrunner.Interfaces.Entities.Device object at 0x00000226F2DC7FC0>
-        ]
-        """
-        # 3
-        devices_in_the_topology_python_dict_with_data = {
-            device.DeviceId: {
-                'ip_address': device.IpAddress,
-                'device_type': device.DeviceType,
+        if project_entity.ListOfDevicesInTheTopology is not None:
+            # 2
+            devices_in_the_topology_python_list_with_dll_objects = dll_runner.translate_dotnet_generic_list_to_python_list(
+                project_entity.ListOfDevicesInTheTopology,
+            )
+
+            # 3
+            devices_in_the_topology_python_dict_with_data = {
+                device.DeviceId: {
+                    'ip_address': device.IpAddress,
+                    'device_type': device.DeviceType,
+                }
+                for device in devices_in_the_topology_python_list_with_dll_objects
             }
-            for device in devices_in_the_topology_python_list_with_dll_objects
-        }
-        """
-        Result:
-        {
-            '1': {
-                'device_type': 'CMMT-AS-MP', 
-                'ip_address': '192.168.2.51'
-            }, 
-            '2': {
-                'device_type': 'CMMT-AS-MP', 
-                'ip_address': '192.168.2.52'
-            }, 
-            '3': {
-                'device_type': 'CMMT-ST-MP', 
-                'ip_address': '192.168.2.53'
-            }
-        }
-        """
+        else:
+            devices_in_the_topology_python_dict_with_data = {}
 
         # 4
         new_project = Project(
             project_name=project_name,
             project_path=project_path,
-            git_hash='123123123',       # ToDo: changed it for testing
+            git_hash=git_hash,
             topology_type=topology_type,
         )
 
         # 5
-        # ToDo: problem here
+        new_project.full_clean()
+        new_project.save()  # save is working
+
+        # 6
         for device_id, device_data in devices_in_the_topology_python_dict_with_data.items():
             if EntityToDbObjectTranslator._check_if_device_is_in_the_db(device_id):
                 try:
@@ -98,14 +101,10 @@ class EntityToDbObjectTranslator:
                     print(f"Error getting device from the database: {e}")
 
                 try:
-                    print(new_project.devices_in_the_topology.all())
-                except Exception as e:
-                    print(f"Error getting devices from the project: {e}")
-
-                try:
                     new_project.devices_in_the_topology.add(device)
                 except Exception as e:
                     print(f"Error adding device to project: {e}")
+
             else:
                 new_device = Device(
                     ip_address=device_data['ip_address'],
@@ -114,9 +113,5 @@ class EntityToDbObjectTranslator:
                 new_device.full_clean()
                 new_device.save()
                 new_project.devices_in_the_topology.add(new_device)
-
-        # 6
-        new_project.full_clean()
-        new_project.save()        # save is working
 
         return new_project

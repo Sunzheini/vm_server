@@ -17,6 +17,13 @@ device_type_choices = (
 class VM(models.Model):
     vm_name = models.CharField(max_length=100, unique=True)
     vm_type = models.CharField(max_length=100, choices=vm_type_choices, default='TwinCAT')
+    selected_plc = models.ForeignKey(
+        'Plc',
+        on_delete=models.SET_NULL,
+        related_name='vms',
+        blank=True,
+        null=True
+    )
 
     machine_is_started = models.BooleanField(default=False)
 
@@ -65,6 +72,10 @@ class VM(models.Model):
 
 
 class Device(models.Model):
+    """
+    The device object contains the metadata for a specific device. Convention:
+    device_type: i.e. CMMT-AS-MP, CMMT-ST-MP
+    """
     ip_address = models.GenericIPAddressField(unique=True)
     device_type = models.CharField(max_length=100, choices=device_type_choices)
 
@@ -73,10 +84,16 @@ class Device(models.Model):
 
 
 class Project(models.Model):
+    """
+    A project object contains the metadata for a specific project. Convention:
+    project_name: i.e. FBW_Beckhoff_Slave_PLC_EtherCAT, FBW_Beckhoff_Master_PLC_EtherCAT
+    git_hash: i.e. 123123123, unique hash of the git repository commit
+    topology_type: i.e. 1, for now no additional logic is needed
+    """
     project_name = models.CharField(max_length=100)
     project_path = models.CharField(max_length=100)
     git_hash = models.CharField(max_length=100, unique=True)
-    topology_type = models.PositiveIntegerField()
+    topology_type = models.PositiveIntegerField(blank=True, null=True)
     devices_in_the_topology = models.ManyToManyField(
         Device,
         related_name='projects',
@@ -91,8 +108,18 @@ class Project(models.Model):
 
 
 class Plc(models.Model):
+    """
+    A plc object contains the metadata for a specific plc. Convention:
+    plc_type: i.e. CX2030, S7-1500, ControlLogix-1756-L83E, CPX-E-CEC
+    vendor_name: i.e. Beckhoff, Siemens, Rockwell, Festo. Using this to link to the virtual machines
+    plc_name: i.e. FBW_Beckhoff_Slave_EtherCAT, FBW_Beckhoff_Master_EtherCAT, FBW_Siemens_Slave_Profinet, FBW_Rockwell_Slave_EthernetIP, FBW_Festo_Slave_EtherCAT
+    ams_net_id: applicable only for TwinCAT
+    ips: 192.168.2.11, 192.168.2.10, 192.168.2.12, 192.168.2.19, 192.168.2.17
+    version: i.e. 1
+    """
+    plc_type = models.CharField(max_length=100)
+    vendor_name = models.CharField(max_length=100, choices=vm_type_choices)
     plc_name = models.CharField(max_length=100, unique=True)
-    plc_type = models.CharField(max_length=100, choices=vm_type_choices)
     ams_net_id = models.CharField(max_length=100, unique=True, blank=True, null=True)
     ip_address = models.GenericIPAddressField(unique=True)
     version = models.CharField(max_length=100)

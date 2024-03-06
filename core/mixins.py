@@ -1,6 +1,12 @@
+from time import sleep
+
+from controllers.server_communicator import ServerCommunicator
+from core.db_manipulation_tools import find_project_based_on_plc_id, check_if_git_hash_exists, find_plc_based_on_id
 from core.db_object_to_entity_translator import DbObjectToEntityTranslator
+from core.engine import Engine
 from core.entity_to_db_object_translator import EntityToDbObjectTranslator
-from vm_server.virtual_machines.models import Plc, Project
+from vm_server.virtual_machines.models import Project, VM
+import requests
 
 
 class RequestAndResponsePlcMetaDataMixin:
@@ -22,33 +28,18 @@ class RequestAndResponsePlcMetaDataMixin:
         Result: object of Project class
         4. Set the Project attribute of the G01_ResponsePlcMetaData object to the new project object
         Result: object of Project class
+        @rtype: object
         @param request_attributes_list: list of strings
         @param response_object: object of type G01_ResponsePlcMetaData
         @param dll_runner: object
         """
         plc_id = request_attributes_list[0]                                                                         # 1
 
-        latest_project = RequestAndResponsePlcMetaDataMixin.find_project_based_on_plc_id(plc_id)                    # 2
-        new_project = DbObjectToEntityTranslator.create_project_entity_from_db_object(dll_runner, latest_project)   # 3
-        response_object.Project = new_project                                                                       # 4
-
-    @staticmethod
-    def find_project_based_on_plc_id(plc_id):
-        """
-        Find the latest project loaded on the PLC
-        Result: object of Project class
-        @param plc_id: string
-        @return: object of Project class
-        """
-        try:
-            plc = Plc.objects.get(pk=plc_id)
-            if plc.loaded_project:
-                latest_project = plc.loaded_project
-                return latest_project
-            else:
-                return None
-        except Plc.DoesNotExist:
-            return None
+        latest_project_attached_to_plc_db_object = find_project_based_on_plc_id(plc_id)     # 2
+        project_to_be_attached_to_the_response = DbObjectToEntityTranslator.create_project_entity_from_db_object(
+            dll_runner, latest_project_attached_to_plc_db_object
+        )                                                                                   # 3
+        response_object.Project = project_to_be_attached_to_the_response                    # 4
 
 
 class RequestAndResponsePlcConfigureMixin:
@@ -61,33 +52,101 @@ class RequestAndResponsePlcConfigureMixin:
 
     @staticmethod
     def handle_plc_configure(request_attributes_list, response_object, dll_runner):
+        """
+        1. Store the value of the request attribute in a variable
+        2. Check if the git hash exists in the db and if not, create a new project object and save it in db
+            Result:
+            Project Id: 3, Name: Project1, Path: path..., Git hash: 123123123, Topology type: 3, Devices: []
+        @param request_attributes_list: list of strings
+        @param response_object: object of type G01_ResponsePlcMetaData
+        @param dll_runner: object
+        """
         plc_id = request_attributes_list[0]
         prj_to_be_loaded = request_attributes_list[1]
 
-        # check if git hash exists in the database, if not, create a new project object and save it in the database
-        if RequestAndResponsePlcConfigureMixin.check_if_git_hash_exists(prj_to_be_loaded.GitHash):
+        # If git hash does not exist in the db, create a new project object and save it in db
+        if not check_if_git_hash_exists(prj_to_be_loaded.GitHash):
             db_project_object = EntityToDbObjectTranslator.create_db_object_from_project_entity(
                 dll_runner,
                 prj_to_be_loaded
             )
-            print(db_project_object)
-            """
-            Result:
-            Project Id: 3, Name: Project1, Path: path..., Git hash: 123123123, Topology type: 3, Devices: []
-            """
-
-        # ToDo: continue from here.
-
-        # ToDo: After 68 is working add `not`
-
-        # else, get the project object from the database
         else:
             db_project_object = Project.objects.get(git_hash=prj_to_be_loaded.GitHash)
 
+        # Set the loaded project to the PLC
+        plc = find_plc_based_on_id(plc_id)
+        plc.loaded_project = db_project_object
+        plc.save()
+
+        plc_to_be_attached_to_response = DbObjectToEntityTranslator.create_plc_entity_from_db_object(
+            dll_runner, plc
+        )
+
+        response_object.Plc = plc_to_be_attached_to_response
+        response_object.Project = prj_to_be_loaded
+        response_object.LogData = f"Project {prj_to_be_loaded.ProjectName} loaded on PLC {plc_id}"
+
+
+class RequestAndResponseStartVmProcessMixin:
+    """
+    A mixin class that contains needed metadata for the connection with the relevant dll classes.
+    """
+    _REQUEST_CLASS = 'G04_RequestStartVmProcess'
+    _REQUEST_ATTRIBUTES = ['IdOfPlcToRequest', ]
+    _RESPONSE_CLASS = 'G05_ResponseStartVmProcess'
+
     @staticmethod
-    def check_if_git_hash_exists(git_hash):
-        try:
-            Project.objects.get(git_hash=git_hash)
-            return True
-        except Project.DoesNotExist:
-            return False
+    def handle_start_vm_process(request_attributes_list, response_object, dll_runner):
+        """
+        1. Store the value of the request attribute in a variable
+        2. Find the PLC based on the ID
+        3. Get the VM type from the PLC
+        4. Start the VM process
+        @param request_attributes_list: list of strings
+        @param response_object: object of type G01_ResponsePlcMetaData
+        @param dll_runner: object
+        """
+        plc_id = request_attributes_list[0]                                                                         # 1
+
+        plc = find_plc_based_on_id(plc_id)
+        vm_type = plc.vendor_name
+
+        # ToDo: Just a temporary logic but working.
+        # vm = VM.objects.get(vm_name=vm_type)
+        # if vm.machine_is_started:
+        #     Engine.VB_CONTROLLER.power_down(vm.vm_name)
+        #     vm.machine_is_started = False
+        #     vm.save()
+        # else:
+        #     Engine.VB_CONTROLLER.initiate_machine(vm.vm_name)
+        #     vm.machine_is_started = True
+        #     vm.save()
+
+        vm = VM.objects.get(vm_name=vm_type)
+        if vm.machine_is_started:
+            vm.machine_is_started = False
+            vm.save()
+
+            response = requests.post(
+                # url='http://172.23.123.58:5000/run_function',
+                url='http://192.168.0.107:5000/run_function',
+                json={"choice": "2"}
+            )
+            sleep(5)
+            Engine.VB_CONTROLLER.power_down(vm.vm_name)
+
+        else:
+            vm.machine_is_started = True
+            vm.save()
+
+            Engine.VB_CONTROLLER.initiate_machine(vm.vm_name)
+            sleep(5)
+
+            response = requests.post(
+                # url='http://172.23.123.58:5000/run_function',
+                url='http://192.168.0.107:5000/run_function',
+                json={"choice": "1"}
+            )
+
+        response_object.LogData = (f"VM process started ({vm.machine_is_started}) "
+                                   f"on PLC {plc_id} of type {vm_type}")

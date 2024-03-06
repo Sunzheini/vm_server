@@ -41,3 +41,37 @@ class DbObjectToEntityTranslator:
         )
 
         return new_project
+
+    @staticmethod
+    def create_plc_entity_from_db_object(dll_runner, plc):
+        """
+        Create a new plc object using the EntityFactory class.
+        1. Get the plc name from the plc object
+        2. Create a new plc object
+        @param dll_runner: the object of the DllRunner class
+        @param plc: the object of the Plc class
+        @return: object of Plc class
+        """
+        # 1
+        plc_id, vendor_name, plc_name, plc_type, ams_net_id, ip_address, version = (
+            plc.pk,
+            plc.vendor_name,
+            plc.plc_name,
+            plc.plc_type,
+            plc.ams_net_id,
+            plc.ip_address,
+            plc.version,
+        )
+
+        # 2
+        new_plc = dll_runner.Plc(
+            str(plc_id),
+            vendor_name,
+            plc_type,
+            plc_name,
+            ams_net_id,
+            ip_address,
+            version,
+        )
+
+        return new_plc

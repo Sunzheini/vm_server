@@ -40,3 +40,11 @@ class PyTerminalSerializer(serializers.ModelSerializer):
 # ---------------------------------------------------------------
 class VMTypeSerializer(serializers.Serializer):
     vm_type = serializers.CharField()
+
+
+# ---------------------------------------------------------------
+# needed to get the plc names
+# ---------------------------------------------------------------
+class PlcNamesSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    plc_name = serializers.CharField()

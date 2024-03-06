@@ -46,6 +46,8 @@ core_dll_imports = [
             'G01_ResponsePlcMetaData',
             'G02_RequestPlcConfigure',
             'G03_ResponsePlcConfigure',
+            'G04_RequestStartVmProcess',
+            'G05_ResponseStartVmProcess',
         ]
     }
 ]

@@ -7,8 +7,38 @@ Postman:
 Headers -> Content-Type -> application/json
 Body -> raw -> JSON
 {
-    "idOfPlcToRequest": "123"
+    "idOfPlcToRequest": "1"
 }
+
+{
+    "idOfPlcToRequest": "1", 
+    "project": 
+    {
+        "projectname": "Project1", 
+        "projectpath": "path...", 
+        "githash": "git...", 
+        "topologytype": 3, 
+        "devicesinthetopology": 
+        [
+            {
+                "deviceid": "1", 
+                "ipaddress": "192.168.2.51", 
+                "devicetype": "CMMT-AS-MP"
+            }, 
+            {
+                "deviceid": "2", 
+                "ipaddress": "192.168.2.52", 
+                "devicetype": "CMMT-AS-MP"
+            }, 
+            {
+                "deviceid": "3", 
+                "ipaddress": "192.168.2.53", 
+                "devicetype": "CMMT-ST-MP"
+            }
+        ]
+    }
+}
+
 """
 
 urlpatterns = [
@@ -34,6 +64,11 @@ urlpatterns = [
     path('vm-types/', VMTypeView.as_view(), name='vm types'),
 
     # ---------------------------------------------------------------
+    # Needed to get the list of plc names
+    # ---------------------------------------------------------------
+    path('plc-names/', PlcNamesView.as_view(), name='plc names'),
+
+    # ---------------------------------------------------------------
     # Used for the communication with the dll
     # ---------------------------------------------------------------
     # http://127.0.0.1:8000/virtual-machines/request-plc-meta-data/
@@ -43,5 +78,5 @@ urlpatterns = [
     path('request-plc-configure/', RequestAndResponsePlcConfigureClassView().as_view(), name='master plc configure'),
 
     # http://127.0.0.1:8000/virtual-machines/request-plc-start/
-    # path('request-plc-start/', BaseDllCommunicationClassView().as_view(), name='request plc start'),
+    path('request-plc-start/', RequestAndResponseStartVmProcessClassView().as_view(), name='request plc start'),
 ]
