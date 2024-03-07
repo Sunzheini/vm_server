@@ -1,12 +1,9 @@
-from time import sleep
-
-from controllers.server_communicator import ServerCommunicator
-from core.db_manipulation_tools import find_project_based_on_plc_id, check_if_git_hash_exists, find_plc_based_on_id
+from core.db_search_tools import find_project_based_on_plc_id, check_if_git_hash_exists, find_plc_based_on_id
 from core.db_object_to_entity_translator import DbObjectToEntityTranslator
 from core.engine import Engine
 from core.entity_to_db_object_translator import EntityToDbObjectTranslator
+from core.serializers import VMSerializer
 from vm_server.virtual_machines.models import Project, VM
-import requests
 
 
 class RequestAndResponsePlcMetaDataMixin:
@@ -101,52 +98,33 @@ class RequestAndResponseStartVmProcessMixin:
         1. Store the value of the request attribute in a variable
         2. Find the PLC based on the ID
         3. Get the VM type from the PLC
-        4. Start the VM process
+        4. Call the Engine class to decide the actions based on the changes in the VM
         @param request_attributes_list: list of strings
         @param response_object: object of type G01_ResponsePlcMetaData
-        @param dll_runner: object
+        @param dll_runner: object of type DllRunner
         """
         plc_id = request_attributes_list[0]                                                                         # 1
-
         plc = find_plc_based_on_id(plc_id)
         vm_type = plc.vendor_name
+        vm = VM.objects.get(vm_type=vm_type)
 
-        # ToDo: Just a temporary logic but working.
-        # vm = VM.objects.get(vm_name=vm_type)
-        # if vm.machine_is_started:
-        #     Engine.VB_CONTROLLER.power_down(vm.vm_name)
-        #     vm.machine_is_started = False
-        #     vm.save()
-        # else:
-        #     Engine.VB_CONTROLLER.initiate_machine(vm.vm_name)
-        #     vm.machine_is_started = True
-        #     vm.save()
-
-        vm = VM.objects.get(vm_name=vm_type)
         if vm.machine_is_started:
-            vm.machine_is_started = False
-            vm.save()
-
-            response = requests.post(
-                # url='http://172.23.123.58:5000/run_function',
-                url='http://192.168.0.107:5000/run_function',
-                json={"choice": "2"}
-            )
-            sleep(5)
-            Engine.VB_CONTROLLER.power_down(vm.vm_name)
+            data_for_serializer = {'machine_is_started': False}
+            serializer = VMSerializer(vm, data_for_serializer, partial=True)
+            if serializer.is_valid():
+                result = Engine.vm_decide_actions_based_on_changes(
+                    vm,
+                    serializer,
+                )
+                response_object.LogData = result
 
         else:
-            vm.machine_is_started = True
-            vm.save()
+            data_for_serializer = {'machine_is_started': True}
+            serializer = VMSerializer(vm, data_for_serializer, partial=True)
+            if serializer.is_valid():
+                result = Engine.vm_decide_actions_based_on_changes(
+                    vm,
+                    serializer,
+                )
+                response_object.LogData = result
 
-            Engine.VB_CONTROLLER.initiate_machine(vm.vm_name)
-            sleep(5)
-
-            response = requests.post(
-                # url='http://172.23.123.58:5000/run_function',
-                url='http://192.168.0.107:5000/run_function',
-                json={"choice": "1"}
-            )
-
-        response_object.LogData = (f"VM process started ({vm.machine_is_started}) "
-                                   f"on PLC {plc_id} of type {vm_type}")

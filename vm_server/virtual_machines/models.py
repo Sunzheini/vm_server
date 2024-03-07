@@ -16,7 +16,7 @@ device_type_choices = (
 
 class VM(models.Model):
     vm_name = models.CharField(max_length=100, unique=True)
-    vm_type = models.CharField(max_length=100, choices=vm_type_choices, default='TwinCAT')
+    vm_type = models.CharField(max_length=100, choices=vm_type_choices, default='TwinCAT', unique=True)
     selected_plc = models.ForeignKey(
         'Plc',
         on_delete=models.SET_NULL,
