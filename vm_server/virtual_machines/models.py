@@ -24,6 +24,7 @@ class VM(models.Model):
         blank=True,
         null=True
     )
+    sequence_is_initiated = models.BooleanField(default=False)
 
     machine_is_started = models.BooleanField(default=False)
 
@@ -42,7 +43,7 @@ class VM(models.Model):
     list_of_currently_allowed_functions = models.TextField(blank=True, null=True)
 
     vm_status = models.TextField(blank=True, null=True)
-    message_what_changed_last = models.CharField(max_length=100, blank=True, null=True)
+    message_what_changed_last = models.CharField(max_length=300, blank=True, null=True)
 
     @property
     def define_name_of_selected_program(self):

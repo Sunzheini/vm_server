@@ -108,23 +108,11 @@ class RequestAndResponseStartVmProcessMixin:
         vm_type = plc.vendor_name
         vm = VM.objects.get(vm_type=vm_type)
 
-        if vm.machine_is_started:
-            data_for_serializer = {'machine_is_started': False}
-            serializer = VMSerializer(vm, data_for_serializer, partial=True)
-            if serializer.is_valid():
-                result = Engine.vm_decide_actions_based_on_changes(
-                    vm,
-                    serializer,
-                )
-                response_object.LogData = result
-
-        else:
-            data_for_serializer = {'machine_is_started': True}
-            serializer = VMSerializer(vm, data_for_serializer, partial=True)
-            if serializer.is_valid():
-                result = Engine.vm_decide_actions_based_on_changes(
-                    vm,
-                    serializer,
-                )
-                response_object.LogData = result
-
+        data_for_serializer = {'sequence_is_initiated': False}
+        serializer = VMSerializer(vm, data_for_serializer, partial=True)
+        if serializer.is_valid():
+            result = Engine.vm_decide_actions_based_on_changes(
+                vm,
+                serializer,
+            )
+            response_object.LogData = result

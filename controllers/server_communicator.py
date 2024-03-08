@@ -10,7 +10,7 @@ class ServerCommunicator:
     def __init__(self, server_url):
         self.url = server_url
         self.headers = {'content-type': 'application/json'}
-        self.data = {'command': None}
+        self.data = {'choice': None}
 
     def send_command_to_server(self, command):
         """
@@ -19,7 +19,7 @@ class ServerCommunicator:
         @return: the response from the server
         """
         try:
-            self.data['command'] = command
+            self.data['choice'] = command
             response = requests.post(self.url, data=json.dumps(self.data), headers=self.headers)
 
             if response.status_code == 200:

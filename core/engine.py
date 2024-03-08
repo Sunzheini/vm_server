@@ -122,7 +122,47 @@ class Engine:
                     result_string = f'Exception: {e}'
                 return result_string
 
-        # ToDo: Working with `Start Machine`, continue from there
+        # key: selected_plc
+        # -----------------------------------------------------
+        elif key == 'selected_plc':
+            if value != old_state_object.selected_plc:
+                try:
+                    result_string = f"Changed selected_plc to: {value}"
+                    Engine.save_the_serializer(serializer, result_string)
+                except Exception as e:
+                    old_state_object.update_status(f'Exception: {e}')
+                    old_state_object.save()
+                    result_string = f'Exception: {e}'
+                return result_string
+
+        # key: sequence_is_initiated
+        # -----------------------------------------------------
+        elif key == 'sequence_is_initiated':
+            Engine.SELECTED_VM_NAME = old_state_object.vm_name
+
+            try:
+                Engine.VB_CONTROLLER.initiate_machine(old_state_object.vm_name)
+                sleep(5)
+                response = Engine.COMMUNICATOR.send_command_to_server('1')
+                sleep(10)
+                response = Engine.COMMUNICATOR.send_command_to_server('5')
+                sleep(10)
+                response = Engine.COMMUNICATOR.send_command_to_server('6')
+                sleep(10)
+                response = Engine.COMMUNICATOR.send_command_to_server('2')
+                sleep(5)
+                Engine.VB_CONTROLLER.power_down(old_state_object.vm_name)
+                result_string = f'VM sequence finished: {response}'
+
+                Engine.save_the_serializer(serializer, result_string)
+                return result_string
+
+            except Exception as e:
+                old_state_object.update_status(f'Exception: {e}')
+                old_state_object.save()
+                result_string = f'Exception: {e}'
+                return result_string
+
         # key: machine_is_started
         # -----------------------------------------------------
         elif key == 'machine_is_started':
@@ -135,13 +175,9 @@ class Engine:
                     try:
                         Engine.VB_CONTROLLER.initiate_machine(old_state_object.vm_name)
                         sleep(5)
-                        response = requests.post(
-                            # url='http://172.23.123.58:5000/run_function',
-                            url='http://192.168.0.107:5000/run_function',
-                            json={"choice": "1"}
-                        )
-
+                        response = Engine.COMMUNICATOR.send_command_to_server('1')
                         result_string = f'VM process started: {response}'
+
                         Engine.save_the_serializer(serializer, result_string)
                         return result_string
 
@@ -154,15 +190,11 @@ class Engine:
                 # if 'machine_is_started' is False
                 else:
                     try:
-                        response = requests.post(
-                            # url='http://172.23.123.58:5000/run_function',
-                            url='http://192.168.0.107:5000/run_function',
-                            json={"choice": "2"}
-                        )
+                        response = Engine.COMMUNICATOR.send_command_to_server('2')
                         sleep(5)
                         Engine.VB_CONTROLLER.power_down(old_state_object.vm_name)
-
                         result_string = f'VM process stopped: {response}'
+
                         Engine.save_the_serializer(serializer, result_string)
                         return result_string
 
@@ -194,7 +226,9 @@ class Engine:
             if value != old_state_object.program_is_open:
                 if value:
                     try:
-                        result_string = f'Opened program'
+                        response = Engine.COMMUNICATOR.send_command_to_server('3')
+                        result_string = f'Opened program: {response}'
+
                         Engine.save_the_serializer(serializer, result_string)
                         return result_string
                     except Exception as e:
@@ -203,7 +237,9 @@ class Engine:
                         return f'Exception: {e}'
                 else:
                     try:
-                        result_string = f'Closed program'
+                        response = Engine.COMMUNICATOR.send_command_to_server('4')
+                        result_string = f'Closed program: {response}'
+
                         Engine.save_the_serializer(serializer, result_string)
                         return result_string
                     except Exception as e:
@@ -215,7 +251,9 @@ class Engine:
         # -----------------------------------------------------
         elif key == 'program_is_compiled':
             try:
-                result_string = 'Compiled program'
+                response = Engine.COMMUNICATOR.send_command_to_server('5')
+                result_string = f'Compiled program: {response}'
+
                 Engine.save_the_serializer(serializer, result_string)
                 return result_string
             except Exception as e:
@@ -227,7 +265,9 @@ class Engine:
         # -----------------------------------------------------
         elif key == 'program_is_downloaded':
             try:
-                result_string = 'Downloaded program'
+                response = Engine.COMMUNICATOR.send_command_to_server('6')
+                result_string = f'Downloaded program: {response}'
+
                 Engine.save_the_serializer(serializer, result_string)
                 return result_string
             except Exception as e:
@@ -241,7 +281,9 @@ class Engine:
             if value != old_state_object.connection_is_online:
                 if value:
                     try:
-                        result_string = 'Connected to PLC'
+                        response = Engine.COMMUNICATOR.send_command_to_server('7')
+                        result_string = f'Connected to PLC: {response}'
+
                         Engine.save_the_serializer(serializer, result_string)
                         return result_string
                     except Exception as e:
@@ -250,7 +292,9 @@ class Engine:
                         return f'Exception: {e}'
                 else:
                     try:
-                        result_string = 'Disconnected from PLC'
+                        response = Engine.COMMUNICATOR.send_command_to_server('8')
+                        result_string = f'Disconnected from PLC: {response}'
+
                         Engine.save_the_serializer(serializer, result_string)
                         return result_string
                     except Exception as e:
@@ -264,7 +308,9 @@ class Engine:
             if value != old_state_object.plc_is_running:
                 if value:
                     try:
-                        result_string = 'Started PLC'
+                        response = Engine.COMMUNICATOR.send_command_to_server('9')
+                        result_string = f'Started PLC: {response}'
+
                         Engine.save_the_serializer(serializer, result_string)
                         return result_string
                     except Exception as e:
@@ -273,7 +319,9 @@ class Engine:
                         return f'Exception: {e}'
                 else:
                     try:
-                        result_string = 'Stopped PLC'
+                        response = Engine.COMMUNICATOR.send_command_to_server('10')
+                        result_string = f'Stopped PLC: {response}'
+
                         Engine.save_the_serializer(serializer, result_string)
                         return result_string
                     except Exception as e:
@@ -287,7 +335,9 @@ class Engine:
             if value != old_state_object.enabled:
                 if value:
                     try:
-                        result_string = 'Enabled'
+                        response = Engine.COMMUNICATOR.send_command_to_server('11')
+                        result_string = f'Enabled: {response}'
+
                         Engine.save_the_serializer(serializer, result_string)
                         return result_string
                     except Exception as e:
@@ -296,7 +346,9 @@ class Engine:
                         return f'Exception: {e}'
                 else:
                     try:
-                        result_string = 'Disabled'
+                        response = Engine.COMMUNICATOR.send_command_to_server('12')
+                        result_string = f'Disabled: {response}'
+
                         Engine.save_the_serializer(serializer, result_string)
                         return result_string
                     except Exception as e:
