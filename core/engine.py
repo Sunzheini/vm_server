@@ -142,7 +142,7 @@ class Engine:
 
             try:
                 Engine.VB_CONTROLLER.initiate_machine(old_state_object.vm_name)
-                sleep(5)
+                sleep(10)
                 response = Engine.COMMUNICATOR.send_command_to_server('1')
                 sleep(10)
                 response = Engine.COMMUNICATOR.send_command_to_server('5')
@@ -150,7 +150,7 @@ class Engine:
                 response = Engine.COMMUNICATOR.send_command_to_server('6')
                 sleep(10)
                 response = Engine.COMMUNICATOR.send_command_to_server('2')
-                sleep(5)
+                sleep(10)
                 Engine.VB_CONTROLLER.power_down(old_state_object.vm_name)
                 result_string = f'VM sequence finished: {response}'
 
@@ -174,7 +174,7 @@ class Engine:
                 if value:
                     try:
                         Engine.VB_CONTROLLER.initiate_machine(old_state_object.vm_name)
-                        sleep(5)
+                        sleep(10)
                         response = Engine.COMMUNICATOR.send_command_to_server('1')
                         result_string = f'VM process started: {response}'
 
@@ -191,7 +191,7 @@ class Engine:
                 else:
                     try:
                         response = Engine.COMMUNICATOR.send_command_to_server('2')
-                        sleep(5)
+                        sleep(10)
                         Engine.VB_CONTROLLER.power_down(old_state_object.vm_name)
                         result_string = f'VM process stopped: {response}'
 
